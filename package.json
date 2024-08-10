@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "build": "elm make src/Main.elm --optimize --output=index.js",
+    "test": "npx elm-test \"src/**/*Test.elm\" --watch",
+    "start": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=index.js"
+  },
+  "devDependencies": {
+    "elm-live": "^4.0.2",
+    "elm-test": "^0.19.1-revision12"
+  }
+}
