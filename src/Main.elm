@@ -1,76 +1,66 @@
-module Main exposing
-    ( main
-    , Model, Msg(..), Effect(..), init, update, view, Route(..)
-    )
-
-{-|
-
-@docs main
-
-
-# Exposed for tests
-
-@docs Model, Msg, Effect, init, update, view, Route, routeToString
-
--}
+module Main exposing (main)
 
 import Browser
-import Browser.Navigation as Navigation
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (classList, href)
-import Html.Events exposing (onClick)
-import Pages.Counter as Counter
-import Pages.Survey as Survey
-import Process
-import Task
+import Pages.Counter
+import Pages.Survey
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
 
 
-type alias Model navigationKey =
-    { page : Page
-    , navigationKey : navigationKey
+type alias Model =
+    { navigationKey : Nav.Key
+    , route : Route
+    , counterPage : Pages.Counter.Model
+    , surveyPage : Pages.Survey.Model
     }
 
 
 type Route
     = CounterRoute
-    | SurveyRoute
+    | SurveyRoute String
+    | NotFoundRoute
 
 
-type Page
-    = CounterPage Counter.Model
-    | SurveyPage Survey.Model
-    | NotFound
+parseUrl : Url -> Route
+parseUrl url =
+    let
+        parse =
+            Url.Parser.oneOf
+                [ Url.Parser.map CounterRoute Url.Parser.top
+                , Url.Parser.map SurveyRoute (Url.Parser.s "survey" </> Url.Parser.string)
+                ]
+                |> Url.Parser.parse
+    in
+    parse url
+        |> Maybe.withDefault NotFoundRoute
 
 
-routeParser : Url.Parser.Parser (Route -> a) a
-routeParser =
-    Url.Parser.oneOf
-        [ Url.Parser.map CounterRoute Url.Parser.top
-        , Url.Parser.map SurveyRoute (Url.Parser.s "survey")
-        ]
-
-
-view : Model navigationKey -> Browser.Document Msg
+view : Model -> Browser.Document Msg
 view model =
     let
         content =
-            case model.page of
-                CounterPage counterModel ->
-                    Counter.view counterModel
+            case model.route of
+                CounterRoute ->
+                    Pages.Counter.view model.counterPage
                         |> Html.map GotCounterMsg
 
-                SurveyPage surveyModel ->
-                    Survey.view surveyModel
+                SurveyRoute userName ->
+                    let
+                        survayModel =
+                            model.surveyPage
+                    in
+                    Pages.Survey.view { survayModel | name = userName }
                         |> Html.map GotSurveyMsg
 
-                NotFound ->
+                NotFoundRoute ->
                     text "Sorry, I did't find this page"
     in
     { title = "Elm SPA Boilerplate"
     , body =
-        [ viewHeader model.page
+        [ viewHeader model.route model.surveyPage.name
         , main_ []
             [ content ]
         , footer []
@@ -80,32 +70,29 @@ view model =
     }
 
 
-viewHeader : Page -> Html msg
-viewHeader activePage =
+viewHeader : Route -> String -> Html msg
+viewHeader activeRoute userName =
+    let
+        isActive : Route -> Route -> Bool
+        isActive routeA routeB =
+            case ( routeA, routeB ) of
+                ( CounterRoute, CounterRoute ) ->
+                    True
+
+                ( SurveyRoute _, SurveyRoute _ ) ->
+                    True
+
+                ( _, _ ) ->
+                    False
+    in
     header []
         [ nav []
             [ ul []
-                [ navLink (isLinkActive ( CounterRoute, activePage )) { url = "/", label = "Counter" }
-                , navLink (isLinkActive ( SurveyRoute, activePage )) { url = "/survey", label = "Survey" }
+                [ navLink (isActive activeRoute CounterRoute) { url = "/", label = "Counter" }
+                , navLink (isActive activeRoute (SurveyRoute "")) { url = "/survey/" ++ userName, label = "Survey" }
                 ]
             ]
         ]
-
-
-isLinkActive : ( Route, Page ) -> Bool
-isLinkActive ( route, page ) =
-    case ( route, page ) of
-        ( CounterRoute, CounterPage _ ) ->
-            True
-
-        ( CounterRoute, _ ) ->
-            False
-
-        ( SurveyRoute, SurveyPage _ ) ->
-            False
-
-        ( SurveyRoute, _ ) ->
-            False
 
 
 navLink : Bool -> { a | url : String, label : String } -> Html msg
@@ -116,97 +103,76 @@ navLink isActive { url, label } =
 type Msg
     = ClickedLink Browser.UrlRequest
     | ChangedUrl Url
-    | GotCounterMsg Counter.Msg
-    | GotSurveyMsg Survey.Msg
+    | GotCounterMsg Pages.Counter.Msg
+    | GotSurveyMsg Pages.Survey.Msg
 
 
-update : Msg -> Model navigationKey -> ( Model navigationKey, Effect )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedLink (Browser.Internal url) ->
-            ( model, PushUrl (Url.toString url) )
+            ( model, Nav.pushUrl model.navigationKey (Url.toString url) )
 
         ClickedLink (Browser.External string) ->
-            ( model, Load string )
+            ( model, Nav.load string )
 
         ChangedUrl url ->
-            ( { model | page = updateUrl url }
-            , NoEffect
+            ( { model | route = parseUrl url }
+            , Cmd.none
             )
 
         GotCounterMsg counterMsg ->
-            case model.page of
-                CounterPage counterModel ->
-                    ( { model | page = CounterPage (Tuple.first (Counter.update counterMsg counterModel)) }, NoEffect )
+            -- in this case we will update the model and run commands only if we are in the Counter page
+            case model.route of
+                CounterRoute ->
+                    let
+                        ( counterModel, counterCmd ) =
+                            Pages.Counter.update counterMsg model.counterPage
+                    in
+                    ( { model | counterPage = counterModel }, Cmd.map GotCounterMsg counterCmd )
 
                 _ ->
-                    ( model, NoEffect )
+                    ( model, Cmd.none )
 
         GotSurveyMsg surveyMsg ->
-            case model.page of
-                SurveyPage surveyModel ->
-                    ( { model | page = SurveyPage (Tuple.first (Survey.update surveyMsg surveyModel)) }, NoEffect )
-
-                _ ->
-                    ( model, NoEffect )
-
-
-updateUrl : Url -> Page
-updateUrl url =
-    case Url.Parser.parse routeParser url of
-        Just CounterRoute ->
-            CounterPage (Counter.init 0)
-
-        Just SurveyRoute ->
-            SurveyPage (Survey.init False)
-
-        Nothing ->
-            NotFound
+            {- in this case we will update the page model and run the commands even if we are not in the Survay page
+               because the userName that we will use in the survay page is sent at the page boot
+            -}
+            let
+                ( survayModel, survayCmd ) =
+                    Pages.Survey.update surveyMsg model.surveyPage
+            in
+            ( { model | surveyPage = survayModel }, Cmd.map GotSurveyMsg survayCmd )
 
 
 type alias Flags =
-    ()
+    Int
 
 
-main : Program Flags (Model Navigation.Key) Msg
+main : Program Flags Model Msg
 main =
-    let
-        performEffect ( model, effect ) =
-            ( model, perform model.navigationKey effect )
-    in
     Browser.application
-        { init = \flags url key -> init flags url key |> performEffect
+        { init = init
         , view = view
-        , update = \msg model -> update msg model |> performEffect
-        , subscriptions = \_ -> Sub.none
+        , update = update
+        , subscriptions = subscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = ChangedUrl
         }
 
 
-init : flags -> Url -> navigationKey -> ( Model navigationKey, Effect )
-init _ url navigationKey =
-    ( { page = updateUrl url
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init initialCounter url navigationKey =
+    ( { route = parseUrl url
+      , counterPage = Pages.Counter.init initialCounter
+      , surveyPage = Pages.Survey.init False "no-name"
       , navigationKey = navigationKey
       }
-    , NoEffect
+    , Cmd.none
     )
 
 
-type Effect
-    = NoEffect
-    | PushUrl String
-    | Load String
-
-
-perform : Navigation.Key -> Effect -> Cmd Msg
-perform navigationKey effect =
-    case effect of
-        NoEffect ->
-            Cmd.none
-
-        PushUrl string ->
-            Navigation.pushUrl navigationKey string
-
-        Load string ->
-            Navigation.load string
+subscriptions : { a | route : Route, surveyPage : Pages.Survey.Model } -> Sub Msg
+subscriptions model =
+    Pages.Survey.subscriptions model.surveyPage
+        |> Sub.map GotSurveyMsg

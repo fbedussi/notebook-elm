@@ -2,7 +2,8 @@
   "scripts": {
     "build": "elm make src/Main.elm --optimize --output=index.js",
     "test": "npx elm-test \"src/**/*Test.elm\" --watch",
-    "start": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=index.js"
+    "start": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=app.js",
+    "start:debug": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=app.js --debug"
   },
   "devDependencies": {
     "elm-live": "^4.0.2",

@@ -1,4 +1,4 @@
-module Pages.Counter exposing (Model, Msg, init, update, view)
+port module Pages.Counter exposing (Model, Msg, init, update, view)
 
 import Html exposing (Html, button, div, span, text)
 import Html.Events exposing (onClick)
@@ -14,14 +14,25 @@ type Msg
     | Decrement
 
 
+port setCounter : Int -> Cmd msg
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Increment ->
-            ( { model | counter = model.counter + 1 }, Cmd.none )
+            let
+                counter =
+                    model.counter + 1
+            in
+            ( { model | counter = counter }, setCounter counter )
 
         Decrement ->
-            ( { model | counter = model.counter - 1 }, Cmd.none )
+            let
+                counter =
+                    model.counter - 1
+            in
+            ( { model | counter = counter }, setCounter counter )
 
 
 view : Model -> Html Msg
