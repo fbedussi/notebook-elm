@@ -6190,20 +6190,30 @@ var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $author$project$Main$GotSurveyMsg = function (a) {
 	return {$: 'GotSurveyMsg', a: a};
 };
+var $author$project$Main$PerformUrlChange = function (a) {
+	return {$: 'PerformUrlChange', a: a};
+};
+var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$map = _Platform_map;
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$performUrlChange = _Platform_incomingPort('performUrlChange', $elm$json$Json$Decode$string);
 var $author$project$Pages$Survey$GotUserName = function (a) {
 	return {$: 'GotUserName', a: a};
 };
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Pages$Survey$getUserName = _Platform_incomingPort('getUserName', $elm$json$Json$Decode$string);
 var $author$project$Pages$Survey$subscriptions = function (model) {
 	return $author$project$Pages$Survey$getUserName($author$project$Pages$Survey$GotUserName);
 };
 var $author$project$Main$subscriptions = function (model) {
-	return A2(
-		$elm$core$Platform$Sub$map,
-		$author$project$Main$GotSurveyMsg,
-		$author$project$Pages$Survey$subscriptions(model.surveyPage));
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				A2(
+				$elm$core$Platform$Sub$map,
+				$author$project$Main$GotSurveyMsg,
+				$author$project$Pages$Survey$subscriptions(model.surveyPage)),
+				$author$project$Main$performUrlChange($author$project$Main$PerformUrlChange)
+			]));
 };
 var $author$project$Main$GotCounterMsg = function (a) {
 	return {$: 'GotCounterMsg', a: a};
@@ -6211,6 +6221,8 @@ var $author$project$Main$GotCounterMsg = function (a) {
 var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $elm$core$Platform$Cmd$map = _Platform_map;
 var $elm$browser$Browser$Navigation$pushUrl = _Browser_pushUrl;
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Main$sendUrlChangeRequest = _Platform_outgoingPort('sendUrlChangeRequest', $elm$json$Json$Encode$string);
 var $elm$url$Url$addPort = F2(
 	function (maybePort, starter) {
 		if (maybePort.$ === 'Nothing') {
@@ -6715,9 +6727,7 @@ var $author$project$Main$update = F2(
 					var url = msg.a.a;
 					return _Utils_Tuple2(
 						model,
-						A2(
-							$elm$browser$Browser$Navigation$pushUrl,
-							model.navigationKey,
+						$author$project$Main$sendUrlChangeRequest(
 							$elm$url$Url$toString(url)));
 				} else {
 					var string = msg.a.a;
@@ -6725,6 +6735,11 @@ var $author$project$Main$update = F2(
 						model,
 						$elm$browser$Browser$Navigation$load(string));
 				}
+			case 'PerformUrlChange':
+				var urlString = msg.a;
+				return _Utils_Tuple2(
+					model,
+					A2($elm$browser$Browser$Navigation$pushUrl, model.navigationKey, urlString));
 			case 'ChangedUrl':
 				var url = msg.a;
 				return _Utils_Tuple2(
@@ -6897,7 +6912,6 @@ var $author$project$Pages$Survey$showData = function (callResult) {
 			return A2($elm$html$Html$div, _List_Nil, _List_Nil);
 	}
 };
-var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(

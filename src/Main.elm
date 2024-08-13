@@ -1,4 +1,4 @@
-module Main exposing (Route(..), main, viewHeader)
+port module Main exposing (Route(..), main, viewHeader)
 
 import Browser
 import Browser.Navigation as Nav
@@ -115,6 +115,7 @@ navLink isActive { url, label } =
 
 type Msg
     = ClickedLink Browser.UrlRequest
+    | PerformUrlChange String
     | ChangedUrl Url
     | GotCounterMsg Pages.Counter.Msg
     | GotSurveyMsg Pages.Survey.Msg
@@ -124,10 +125,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedLink (Browser.Internal url) ->
-            ( model, Nav.pushUrl model.navigationKey (Url.toString url) )
+            ( model, Url.toString url |> sendUrlChangeRequest )
 
         ClickedLink (Browser.External string) ->
             ( model, Nav.load string )
+
+        PerformUrlChange urlString ->
+            ( model, Nav.pushUrl model.navigationKey urlString )
 
         ChangedUrl url ->
             ( { model | route = parseUrl url }
@@ -156,6 +160,12 @@ update msg model =
                     Pages.Survey.update surveyMsg model.surveyPage
             in
             ( { model | surveyPage = survayModel }, Cmd.map GotSurveyMsg survayCmd )
+
+
+port sendUrlChangeRequest : String -> Cmd msg
+
+
+port performUrlChange : (String -> msg) -> Sub msg
 
 
 type alias Flags =
@@ -187,5 +197,8 @@ init initialCounter url navigationKey =
 
 subscriptions : { a | route : Route, surveyPage : Pages.Survey.Model } -> Sub Msg
 subscriptions model =
-    Pages.Survey.subscriptions model.surveyPage
-        |> Sub.map GotSurveyMsg
+    Sub.batch
+        [ Pages.Survey.subscriptions model.surveyPage
+            |> Sub.map GotSurveyMsg
+        , performUrlChange PerformUrlChange
+        ]

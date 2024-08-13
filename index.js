@@ -28,3 +28,25 @@ app.ports.setCounter.subscribe(counter => {
 })
 
 app.ports.getUserName.send('baz')
+
+app.ports.sendUrlChangeRequest.subscribe(url => {
+
+	if (url.includes('survey')) {
+		document.documentElement.className = 'page-two'
+	} else {
+		document.documentElement.className = 'page-one'
+	}
+
+	const changePage = () => {
+    app.ports.performUrlChange.send(url)
+  };
+
+  // Fallback for browsers that don't support View Transitions:
+  if (!document.startViewTransition) {
+    changePage();
+    return;
+  }
+
+  // With View Transitions:
+  const transition = document.startViewTransition(() => changePage());
+})
