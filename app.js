@@ -6762,6 +6762,16 @@ var $author$project$Main$update = F2(
 		}
 	});
 var $elm$html$Html$footer = _VirtualDom_node('footer');
+var $author$project$Main$getTitle = function (route) {
+	switch (route.$) {
+		case 'CounterRoute':
+			return 'Elm SPA boilerplate - Counter';
+		case 'SurveyRoute':
+			return 'Elm SPA boilerplate - Survay';
+		default:
+			return 'Elm SPA boilerplate';
+	}
+};
 var $elm$html$Html$main_ = _VirtualDom_node('main');
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
@@ -6769,6 +6779,14 @@ var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Pages$Counter$Decrement = {$: 'Decrement'};
 var $author$project$Pages$Counter$Increment = {$: 'Increment'};
+var $elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
@@ -6807,7 +6825,10 @@ var $author$project$Pages$Counter$view = function (model) {
 					])),
 				A2(
 				$elm$html$Html$span,
-				_List_Nil,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$attribute, 'data-testid', 'counter-display')
+					]),
 				_List_fromArray(
 					[
 						$elm$html$Html$text(
@@ -7051,7 +7072,7 @@ var $author$project$Main$viewHeader = F2(
 										isActive,
 										activeRoute,
 										$author$project$Main$SurveyRoute('')),
-									{label: 'Survey', url: '/survey/' + userName})
+									{label: 'Survey ' + userName, url: '/survey/' + userName})
 								]))
 						]))
 				]));
@@ -7096,7 +7117,7 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$text('Elm SPA boilerplate')
 					]))
 			]),
-		title: 'Elm SPA Boilerplate'
+		title: $author$project$Main$getTitle(model.route)
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$application(

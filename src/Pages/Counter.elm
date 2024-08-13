@@ -1,6 +1,7 @@
 port module Pages.Counter exposing (Model, Msg, init, update, view)
 
 import Html exposing (Html, button, div, span, text)
+import Html.Attributes exposing (attribute)
 import Html.Events exposing (onClick)
 
 
@@ -41,7 +42,7 @@ view model =
         [ button [ onClick Decrement ]
             [ text "-" ]
         , span
-            []
+            [ attribute "data-testid" "counter-display" ]
             [ text (String.fromInt model.counter) ]
         , button
             [ onClick Increment ]

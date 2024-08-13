@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (Route(..), main, viewHeader)
 
 import Browser
 import Browser.Navigation as Nav
@@ -58,7 +58,7 @@ view model =
                 NotFoundRoute ->
                     text "Sorry, I did't find this page"
     in
-    { title = "Elm SPA Boilerplate"
+    { title = getTitle model.route
     , body =
         [ viewHeader model.route model.surveyPage.name
         , main_ []
@@ -68,6 +68,19 @@ view model =
             ]
         ]
     }
+
+
+getTitle : Route -> String
+getTitle route =
+    case route of
+        CounterRoute ->
+            "Elm SPA boilerplate - Counter"
+
+        SurveyRoute _ ->
+            "Elm SPA boilerplate - Survay"
+
+        _ ->
+            "Elm SPA boilerplate"
 
 
 viewHeader : Route -> String -> Html msg
@@ -89,7 +102,7 @@ viewHeader activeRoute userName =
         [ nav []
             [ ul []
                 [ navLink (isActive activeRoute CounterRoute) { url = "/", label = "Counter" }
-                , navLink (isActive activeRoute (SurveyRoute "")) { url = "/survey/" ++ userName, label = "Survey" }
+                , navLink (isActive activeRoute (SurveyRoute "")) { url = "/survey/" ++ userName, label = "Survey " ++ userName }
                 ]
             ]
         ]
