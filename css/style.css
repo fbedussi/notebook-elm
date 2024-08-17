@@ -1,12 +1,3 @@
-nav ul {
-  display: flex;
-  gap: 1rem;
-
-  .active {
-    color: red
-  }
-}
-
 @view-transition {
   navigation: auto;
 }
@@ -76,4 +67,17 @@ nav ul {
 
 .page-two::view-transition-new(root) {
   animation: 0.4s ease-in both move-in-two;
+}
+
+.fab {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  border-radius: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  width: 3rem;
+  height: 3rem;
 }

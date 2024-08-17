@@ -1,11 +1,12 @@
-port module Main exposing (Route(..), main, viewHeader)
+port module Main exposing (Route(..), main, getTitle)
 
 import Browser
 import Browser.Navigation as Nav
 import Html exposing (..)
-import Html.Attributes exposing (classList, href)
-import Pages.Counter
-import Pages.Survey
+import Model exposing (Id, Note)
+import Pages.List.Main as ListPage
+import Pages.List.Model
+import Pages.Single
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
 
@@ -13,14 +14,14 @@ import Url.Parser exposing ((</>))
 type alias Model =
     { navigationKey : Nav.Key
     , route : Route
-    , counterPage : Pages.Counter.Model
-    , surveyPage : Pages.Survey.Model
+    , listPage : Pages.List.Model.Model
+    , singlePage : Pages.Single.Model
     }
 
 
 type Route
-    = CounterRoute
-    | SurveyRoute String
+    = ListRoute
+    | SingleRoute Id
     | NotFoundRoute
 
 
@@ -29,8 +30,8 @@ parseUrl url =
     let
         parse =
             Url.Parser.oneOf
-                [ Url.Parser.map CounterRoute Url.Parser.top
-                , Url.Parser.map SurveyRoute (Url.Parser.s "survey" </> Url.Parser.string)
+                [ Url.Parser.map ListRoute Url.Parser.top
+                , Url.Parser.map SingleRoute (Url.Parser.s "note" </> Url.Parser.string)
                 ]
                 |> Url.Parser.parse
     in
@@ -43,82 +44,53 @@ view model =
     let
         content =
             case model.route of
-                CounterRoute ->
-                    Pages.Counter.view model.counterPage
-                        |> Html.map GotCounterMsg
+                ListRoute ->
+                    ListPage.view model.listPage
+                        |> List.map (Html.map GotListMsg)
 
-                SurveyRoute userName ->
+                SingleRoute id ->
                     let
-                        survayModel =
-                            model.surveyPage
+                        singleModel =
+                            model.singlePage
                     in
-                    Pages.Survey.view { survayModel | name = userName }
-                        |> Html.map GotSurveyMsg
+                    Pages.Single.view { singleModel | id = id }
+                        |> List.map (Html.map GotSingleMsg)
 
                 NotFoundRoute ->
-                    text "Sorry, I did't find this page"
+                    [ text "Sorry, I did't find this page" ]
     in
-    { title = getTitle model.route
+    { title =
+        getTitle model.route model.singlePage.note
     , body =
-        [ viewHeader model.route model.surveyPage.name
-        , main_ []
-            [ content ]
-        , footer []
-            [ text "Elm SPA boilerplate"
-            ]
-        ]
+        content
     }
 
 
-getTitle : Route -> String
-getTitle route =
-    case route of
-        CounterRoute ->
-            "Elm SPA boilerplate - Counter"
+getTitle : Route -> Maybe Note -> String
+getTitle route maybeNote =
+    let
+        noteTitle =
+            case maybeNote of
+                Just note ->
+                    note.title
 
-        SurveyRoute _ ->
-            "Elm SPA boilerplate - Survay"
+                Nothing ->
+                    ""
+    in
+    case route of
+        SingleRoute _ ->
+            "Notebook - " ++ noteTitle
 
         _ ->
-            "Elm SPA boilerplate"
-
-
-viewHeader : Route -> String -> Html msg
-viewHeader activeRoute userName =
-    let
-        isActive : Route -> Route -> Bool
-        isActive routeA routeB =
-            case ( routeA, routeB ) of
-                ( CounterRoute, CounterRoute ) ->
-                    True
-
-                ( SurveyRoute _, SurveyRoute _ ) ->
-                    True
-
-                ( _, _ ) ->
-                    False
-    in
-    header []
-        [ nav []
-            [ ul []
-                [ navLink (isActive activeRoute CounterRoute) { url = "/", label = "Counter" }
-                , navLink (isActive activeRoute (SurveyRoute "")) { url = "/survey/" ++ userName, label = "Survey " ++ userName }
-                ]
-            ]
-        ]
-
-
-navLink : Bool -> { a | url : String, label : String } -> Html msg
-navLink isActive { url, label } =
-    a [ href url, classList [ ( "active", isActive ) ] ] [ text label ]
+            "Notebook"
 
 
 type Msg
     = ClickedLink Browser.UrlRequest
     | PerformUrlChange String
     | ChangedUrl Url
-    | GotCounterMsg Pages.Counter.Msg
-    | GotSurveyMsg Pages.Survey.Msg
+    | GotListMsg Pages.List.Model.Msg
+    | GotSingleMsg Pages.Single.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -138,28 +110,29 @@ update msg model =
             , Cmd.none
             )
 
-        GotCounterMsg counterMsg ->
-            -- in this case we will update the model and run commands only if we are in the Counter page
+        GotListMsg listMsg ->
             case model.route of
-                CounterRoute ->
+                ListRoute ->
                     let
-                        ( counterModel, counterCmd ) =
-                            Pages.Counter.update counterMsg model.counterPage
+                        ( listMode, listCmd ) =
+                            ListPage.update listMsg model.listPage
                     in
-                    ( { model | counterPage = counterModel }, Cmd.map GotCounterMsg counterCmd )
+                    ( { model | listPage = listMode }, Cmd.map GotListMsg listCmd )
 
                 _ ->
                     ( model, Cmd.none )
 
-        GotSurveyMsg surveyMsg ->
-            {- in this case we will update the page model and run the commands even if we are not in the Survay page
-               because the userName that we will use in the survay page is sent at the page boot
-            -}
-            let
-                ( survayModel, survayCmd ) =
-                    Pages.Survey.update surveyMsg model.surveyPage
-            in
-            ( { model | surveyPage = survayModel }, Cmd.map GotSurveyMsg survayCmd )
+        GotSingleMsg singleMsg ->
+            case model.route of
+                SingleRoute id ->
+                    let
+                        ( singleModel, singleCmd ) =
+                            Pages.Single.update singleMsg { id = id, note = Nothing }
+                    in
+                    ( { model | singlePage = singleModel }, Cmd.map GotSingleMsg singleCmd )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 port sendUrlChangeRequest : String -> Cmd msg
@@ -169,7 +142,7 @@ port performUrlChange : (String -> msg) -> Sub msg
 
 
 type alias Flags =
-    Int
+    ()
 
 
 main : Program Flags Model Msg
@@ -185,20 +158,29 @@ main =
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init initialCounter url navigationKey =
-    ( { route = parseUrl url
-      , counterPage = Pages.Counter.init initialCounter
-      , surveyPage = Pages.Survey.init False "no-name"
-      , navigationKey = navigationKey
+init () url navigationKey =
+    let
+        route =
+            parseUrl url
+
+        selectedNoteId =
+            case route of
+                SingleRoute id ->
+                    id
+
+                _ ->
+                    ""
+    in
+    ( { navigationKey = navigationKey
+      , route = route
+      , listPage = ListPage.init ()
+      , singlePage = Pages.Single.init selectedNoteId
       }
     , Cmd.none
     )
 
 
-subscriptions : { a | route : Route, surveyPage : Pages.Survey.Model } -> Sub Msg
-subscriptions model =
-    Sub.batch
-        [ Pages.Survey.subscriptions model.surveyPage
-            |> Sub.map GotSurveyMsg
-        , performUrlChange PerformUrlChange
-        ]
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    ListPage.subscriptions ()
+        |> Sub.map GotListMsg

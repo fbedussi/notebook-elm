@@ -1,52 +1,30 @@
-const registerSw = async () => {
-  try {
-    const registration = await navigator.serviceWorker.register(`/sw.js`, {scope: "./"})
-    registration.update();
-    console.log("Service worker registration succeeded:", registration)
-  } catch (error) {
-    console.error(`Service worker registration failed: ${error}`)
-  }
-}
+import {handleDialog} from './dialog.js'
 
-registerSw()
+// import { initializeApp } from "firebase/app";
 
-// reload if page is not controlled as a workaround to the fact that when the page is force reloaded 
-// the SW doesn't work
-// https://github.com/mswjs/msw/issues/98
-if (!navigator.serviceWorker.controller) {
-  location.reload()
-}
+// const firebaseConfig = {
+//   apiKey: "AIzaSyBenlzLRgjVQHnt4uQwqMGE1O7q3mcKhMo",
+//   authDomain: "notebook-elm.firebaseapp.com",
+//   projectId: "notebook-elm",
+//   storageBucket: "notebook-elm.appspot.com",
+//   messagingSenderId: "1057896746277",
+//   appId: "1:1057896746277:web:fb294ac1340bb5a4df9ecc"
+// };
 
-const COUNTER = 'counter'
+// const firebaseApp = initializeApp(firebaseConfig);
 
-const counterInitialValue = window.localStorage.getItem(COUNTER) || '0'
+const elmApp = Elm.Main.init();
 
-const app = Elm.Main.init({flags: Number(counterInitialValue)});
+handleDialog(elmApp)
 
-app.ports.setCounter.subscribe(counter => {
-	window.localStorage.setItem(COUNTER, counter)
-})
-
-app.ports.getUserName.send('baz')
-
-app.ports.sendUrlChangeRequest.subscribe(url => {
-
-	if (url.includes('survey')) {
-		document.documentElement.className = 'page-two'
-	} else {
-		document.documentElement.className = 'page-one'
-	}
-
-	const changePage = () => {
-    app.ports.performUrlChange.send(url)
-  };
-
-  // Fallback for browsers that don't support View Transitions:
-  if (!document.startViewTransition) {
-    changePage();
-    return;
-  }
-
-  // With View Transitions:
-  const transition = document.startViewTransition(() => changePage());
+let notes = []
+elmApp.ports.addNote.subscribe(newNoteData => {
+  const timestamp = Date.now()
+  notes.push({
+    ...JSON.parse(newNoteData),
+    id: crypto.randomUUID(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  })
+  elmApp.ports.gotNotes.send(notes)
 })

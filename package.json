@@ -12,5 +12,8 @@
     "@types/node": "^22.2.0",
     "elm-live": "^4.0.2",
     "elm-test": "^0.19.1-revision12"
+  },
+  "dependencies": {
+    "firebase": "^10.13.0"
   }
 }

@@ -4388,181 +4388,6 @@ function _Url_percentDecode(string)
 	{
 		return $elm$core$Maybe$Nothing;
 	}
-}
-
-
-// SEND REQUEST
-
-var _Http_toTask = F3(function(router, toTask, request)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		function done(response) {
-			callback(toTask(request.expect.a(response)));
-		}
-
-		var xhr = new XMLHttpRequest();
-		xhr.addEventListener('error', function() { done($elm$http$Http$NetworkError_); });
-		xhr.addEventListener('timeout', function() { done($elm$http$Http$Timeout_); });
-		xhr.addEventListener('load', function() { done(_Http_toResponse(request.expect.b, xhr)); });
-		$elm$core$Maybe$isJust(request.tracker) && _Http_track(router, xhr, request.tracker.a);
-
-		try {
-			xhr.open(request.method, request.url, true);
-		} catch (e) {
-			return done($elm$http$Http$BadUrl_(request.url));
-		}
-
-		_Http_configureRequest(xhr, request);
-
-		request.body.a && xhr.setRequestHeader('Content-Type', request.body.a);
-		xhr.send(request.body.b);
-
-		return function() { xhr.c = true; xhr.abort(); };
-	});
-});
-
-
-// CONFIGURE
-
-function _Http_configureRequest(xhr, request)
-{
-	for (var headers = request.headers; headers.b; headers = headers.b) // WHILE_CONS
-	{
-		xhr.setRequestHeader(headers.a.a, headers.a.b);
-	}
-	xhr.timeout = request.timeout.a || 0;
-	xhr.responseType = request.expect.d;
-	xhr.withCredentials = request.allowCookiesFromOtherDomains;
-}
-
-
-// RESPONSES
-
-function _Http_toResponse(toBody, xhr)
-{
-	return A2(
-		200 <= xhr.status && xhr.status < 300 ? $elm$http$Http$GoodStatus_ : $elm$http$Http$BadStatus_,
-		_Http_toMetadata(xhr),
-		toBody(xhr.response)
-	);
-}
-
-
-// METADATA
-
-function _Http_toMetadata(xhr)
-{
-	return {
-		url: xhr.responseURL,
-		statusCode: xhr.status,
-		statusText: xhr.statusText,
-		headers: _Http_parseHeaders(xhr.getAllResponseHeaders())
-	};
-}
-
-
-// HEADERS
-
-function _Http_parseHeaders(rawHeaders)
-{
-	if (!rawHeaders)
-	{
-		return $elm$core$Dict$empty;
-	}
-
-	var headers = $elm$core$Dict$empty;
-	var headerPairs = rawHeaders.split('\r\n');
-	for (var i = headerPairs.length; i--; )
-	{
-		var headerPair = headerPairs[i];
-		var index = headerPair.indexOf(': ');
-		if (index > 0)
-		{
-			var key = headerPair.substring(0, index);
-			var value = headerPair.substring(index + 2);
-
-			headers = A3($elm$core$Dict$update, key, function(oldValue) {
-				return $elm$core$Maybe$Just($elm$core$Maybe$isJust(oldValue)
-					? value + ', ' + oldValue.a
-					: value
-				);
-			}, headers);
-		}
-	}
-	return headers;
-}
-
-
-// EXPECT
-
-var _Http_expect = F3(function(type, toBody, toValue)
-{
-	return {
-		$: 0,
-		d: type,
-		b: toBody,
-		a: toValue
-	};
-});
-
-var _Http_mapExpect = F2(function(func, expect)
-{
-	return {
-		$: 0,
-		d: expect.d,
-		b: expect.b,
-		a: function(x) { return func(expect.a(x)); }
-	};
-});
-
-function _Http_toDataView(arrayBuffer)
-{
-	return new DataView(arrayBuffer);
-}
-
-
-// BODY and PARTS
-
-var _Http_emptyBody = { $: 0 };
-var _Http_pair = F2(function(a, b) { return { $: 0, a: a, b: b }; });
-
-function _Http_toFormData(parts)
-{
-	for (var formData = new FormData(); parts.b; parts = parts.b) // WHILE_CONS
-	{
-		var part = parts.a;
-		formData.append(part.a, part.b);
-	}
-	return formData;
-}
-
-var _Http_bytesToBlob = F2(function(mime, bytes)
-{
-	return new Blob([bytes], { type: mime });
-});
-
-
-// PROGRESS
-
-function _Http_track(router, xhr, tracker)
-{
-	// TODO check out lengthComputable on loadstart event
-
-	xhr.upload.addEventListener('progress', function(event) {
-		if (xhr.c) { return; }
-		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Sending({
-			sent: event.loaded,
-			size: event.total
-		}))));
-	});
-	xhr.addEventListener('progress', function(event) {
-		if (xhr.c) { return; }
-		_Scheduler_rawSpawn(A2($elm$core$Platform$sendToSelf, router, _Utils_Tuple2(tracker, $elm$http$Http$Receiving({
-			received: event.loaded,
-			size: event.lengthComputable ? $elm$core$Maybe$Just(event.total) : $elm$core$Maybe$Nothing
-		}))));
-	});
 }var $author$project$Main$ChangedUrl = function (a) {
 	return {$: 'ChangedUrl', a: a};
 };
@@ -5358,20 +5183,23 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$application = _Browser_application;
-var $author$project$Pages$Counter$init = function (initialCounter) {
-	return {counter: initialCounter};
+var $author$project$Pages$List$Main$init = function (_v0) {
+	return {
+		addNoteFormOpen: false,
+		error: $elm$core$Maybe$Nothing,
+		newNoteData: {text: '', title: ''},
+		notes: _List_Nil
+	};
 };
-var $author$project$Pages$Survey$Idle = {$: 'Idle'};
-var $author$project$Pages$Survey$init = F2(
-	function (initialLikeElm, name) {
-		return {data: $author$project$Pages$Survey$Idle, likeElm: initialLikeElm, name: name};
-	});
+var $author$project$Pages$Single$init = function (id) {
+	return {id: id, note: $elm$core$Maybe$Nothing};
+};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Main$CounterRoute = {$: 'CounterRoute'};
+var $author$project$Main$ListRoute = {$: 'ListRoute'};
 var $author$project$Main$NotFoundRoute = {$: 'NotFoundRoute'};
-var $author$project$Main$SurveyRoute = function (a) {
-	return {$: 'SurveyRoute', a: a};
+var $author$project$Main$SingleRoute = function (a) {
+	return {$: 'SingleRoute', a: a};
 };
 var $elm$url$Url$Parser$Parser = function (a) {
 	return {$: 'Parser', a: a};
@@ -6161,13 +5989,13 @@ var $author$project$Main$parseUrl = function (url) {
 		$elm$url$Url$Parser$oneOf(
 			_List_fromArray(
 				[
-					A2($elm$url$Url$Parser$map, $author$project$Main$CounterRoute, $elm$url$Url$Parser$top),
+					A2($elm$url$Url$Parser$map, $author$project$Main$ListRoute, $elm$url$Url$Parser$top),
 					A2(
 					$elm$url$Url$Parser$map,
-					$author$project$Main$SurveyRoute,
+					$author$project$Main$SingleRoute,
 					A2(
 						$elm$url$Url$Parser$slash,
-						$elm$url$Url$Parser$s('survey'),
+						$elm$url$Url$Parser$s('note'),
 						$elm$url$Url$Parser$string))
 				])));
 	return A2(
@@ -6176,47 +6004,103 @@ var $author$project$Main$parseUrl = function (url) {
 		parse(url));
 };
 var $author$project$Main$init = F3(
-	function (initialCounter, url, navigationKey) {
+	function (_v0, url, navigationKey) {
+		var route = $author$project$Main$parseUrl(url);
+		var selectedNoteId = function () {
+			if (route.$ === 'SingleRoute') {
+				var id = route.a;
+				return id;
+			} else {
+				return '';
+			}
+		}();
 		return _Utils_Tuple2(
 			{
-				counterPage: $author$project$Pages$Counter$init(initialCounter),
+				listPage: $author$project$Pages$List$Main$init(_Utils_Tuple0),
 				navigationKey: navigationKey,
-				route: $author$project$Main$parseUrl(url),
-				surveyPage: A2($author$project$Pages$Survey$init, false, 'no-name')
+				route: route,
+				singlePage: $author$project$Pages$Single$init(selectedNoteId)
 			},
 			$elm$core$Platform$Cmd$none);
 	});
-var $elm$json$Json$Decode$int = _Json_decodeInt;
-var $author$project$Main$GotSurveyMsg = function (a) {
-	return {$: 'GotSurveyMsg', a: a};
+var $author$project$Main$GotListMsg = function (a) {
+	return {$: 'GotListMsg', a: a};
 };
-var $author$project$Main$PerformUrlChange = function (a) {
-	return {$: 'PerformUrlChange', a: a};
-};
-var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$map = _Platform_map;
+var $author$project$Pages$List$Model$GotError = function (a) {
+	return {$: 'GotError', a: a};
+};
+var $author$project$Pages$List$Model$GotNotes = function (a) {
+	return {$: 'GotNotes', a: a};
+};
+var $elm$json$Json$Decode$decodeValue = _Json_run;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $author$project$Model$Note = F5(
+	function (id, title, text, createdAt, updatedAt) {
+		return {createdAt: createdAt, id: id, text: text, title: title, updatedAt: updatedAt};
+	});
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $author$project$Pages$List$Main$decodePosix = A2($elm$json$Json$Decode$map, $elm$time$Time$millisToPosix, $elm$json$Json$Decode$int);
+var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom = $elm$json$Json$Decode$map2($elm$core$Basics$apR);
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
+	function (key, valDecoder, decoder) {
+		return A2(
+			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
+			A2($elm$json$Json$Decode$field, key, valDecoder),
+			decoder);
+	});
 var $elm$json$Json$Decode$string = _Json_decodeString;
-var $author$project$Main$performUrlChange = _Platform_incomingPort('performUrlChange', $elm$json$Json$Decode$string);
-var $author$project$Pages$Survey$GotUserName = function (a) {
-	return {$: 'GotUserName', a: a};
+var $author$project$Pages$List$Main$noteDecoder = A3(
+	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+	'updatedAt',
+	$author$project$Pages$List$Main$decodePosix,
+	A3(
+		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+		'createdAt',
+		$author$project$Pages$List$Main$decodePosix,
+		A3(
+			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+			'text',
+			$elm$json$Json$Decode$string,
+			A3(
+				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+				'title',
+				$elm$json$Json$Decode$string,
+				A3(
+					$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
+					'id',
+					$elm$json$Json$Decode$string,
+					$elm$json$Json$Decode$succeed($author$project$Model$Note))))));
+var $author$project$Pages$List$Main$notesDecoder = $elm$json$Json$Decode$list($author$project$Pages$List$Main$noteDecoder);
+var $author$project$Pages$List$Main$decodeNotes = function (value) {
+	var decodedValue = A2($elm$json$Json$Decode$decodeValue, $author$project$Pages$List$Main$notesDecoder, value);
+	if (decodedValue.$ === 'Ok') {
+		var notes = decodedValue.a;
+		return $author$project$Pages$List$Model$GotNotes(notes);
+	} else {
+		var error = decodedValue.a;
+		return $author$project$Pages$List$Model$GotError(
+			'Error decoding notes: ' + $elm$json$Json$Decode$errorToString(error));
+	}
 };
-var $author$project$Pages$Survey$getUserName = _Platform_incomingPort('getUserName', $elm$json$Json$Decode$string);
-var $author$project$Pages$Survey$subscriptions = function (model) {
-	return $author$project$Pages$Survey$getUserName($author$project$Pages$Survey$GotUserName);
+var $elm$json$Json$Decode$value = _Json_decodeValue;
+var $author$project$Pages$List$Main$gotNotes = _Platform_incomingPort('gotNotes', $elm$json$Json$Decode$value);
+var $author$project$Pages$List$Main$subscriptions = function (_v0) {
+	return $author$project$Pages$List$Main$gotNotes($author$project$Pages$List$Main$decodeNotes);
 };
-var $author$project$Main$subscriptions = function (model) {
-	return $elm$core$Platform$Sub$batch(
-		_List_fromArray(
-			[
-				A2(
-				$elm$core$Platform$Sub$map,
-				$author$project$Main$GotSurveyMsg,
-				$author$project$Pages$Survey$subscriptions(model.surveyPage)),
-				$author$project$Main$performUrlChange($author$project$Main$PerformUrlChange)
-			]));
+var $author$project$Main$subscriptions = function (_v0) {
+	return A2(
+		$elm$core$Platform$Sub$map,
+		$author$project$Main$GotListMsg,
+		$author$project$Pages$List$Main$subscriptions(_Utils_Tuple0));
 };
-var $author$project$Main$GotCounterMsg = function (a) {
-	return {$: 'GotCounterMsg', a: a};
+var $author$project$Main$GotSingleMsg = function (a) {
+	return {$: 'GotSingleMsg', a: a};
 };
 var $elm$browser$Browser$Navigation$load = _Browser_load;
 var $elm$core$Platform$Cmd$map = _Platform_map;
@@ -6267,457 +6151,113 @@ var $elm$url$Url$toString = function (url) {
 					_Utils_ap(http, url.host)),
 				url.path)));
 };
-var $elm$json$Json$Encode$int = _Json_wrap;
-var $author$project$Pages$Counter$setCounter = _Platform_outgoingPort('setCounter', $elm$json$Json$Encode$int);
-var $author$project$Pages$Counter$update = F2(
-	function (msg, model) {
-		if (msg.$ === 'Increment') {
-			var counter = model.counter + 1;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{counter: counter}),
-				$author$project$Pages$Counter$setCounter(counter));
-		} else {
-			var counter = model.counter - 1;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{counter: counter}),
-				$author$project$Pages$Counter$setCounter(counter));
-		}
-	});
-var $author$project$Pages$Survey$Data = function (a) {
-	return {$: 'Data', a: a};
+var $author$project$Pages$List$Model$CloseAddNoteForm = {$: 'CloseAddNoteForm'};
+var $author$project$Pages$List$Main$addNote = _Platform_outgoingPort('addNote', $elm$json$Json$Encode$string);
+var $author$project$Pages$List$Main$addNoteDialogId = 'add-note-dialog';
+var $author$project$Styleguide$Dialog$closeDialog = _Platform_outgoingPort('closeDialog', $elm$json$Json$Encode$string);
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
 };
-var $author$project$Pages$Survey$Error = function (a) {
-	return {$: 'Error', a: a};
+var $author$project$Pages$List$Main$newNoteDataEncoder = function (newNoteData) {
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'title',
+				$elm$json$Json$Encode$string(newNoteData.title)),
+				_Utils_Tuple2(
+				'text',
+				$elm$json$Json$Encode$string(newNoteData.text))
+			]));
 };
-var $author$project$Pages$Survey$Loading = {$: 'Loading'};
-var $author$project$Pages$Survey$DataLoaded = function (a) {
-	return {$: 'DataLoaded', a: a};
-};
-var $elm$json$Json$Decode$decodeString = _Json_runOnString;
-var $elm$http$Http$BadStatus_ = F2(
-	function (a, b) {
-		return {$: 'BadStatus_', a: a, b: b};
-	});
-var $elm$http$Http$BadUrl_ = function (a) {
-	return {$: 'BadUrl_', a: a};
-};
-var $elm$http$Http$GoodStatus_ = F2(
-	function (a, b) {
-		return {$: 'GoodStatus_', a: a, b: b};
-	});
-var $elm$http$Http$NetworkError_ = {$: 'NetworkError_'};
-var $elm$http$Http$Receiving = function (a) {
-	return {$: 'Receiving', a: a};
-};
-var $elm$http$Http$Sending = function (a) {
-	return {$: 'Sending', a: a};
-};
-var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
-var $elm$core$Maybe$isJust = function (maybe) {
-	if (maybe.$ === 'Just') {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var $elm$http$Http$expectStringResponse = F2(
-	function (toMsg, toResult) {
-		return A3(
-			_Http_expect,
-			'',
-			$elm$core$Basics$identity,
-			A2($elm$core$Basics$composeR, toResult, toMsg));
-	});
-var $elm$core$Result$mapError = F2(
-	function (f, result) {
-		if (result.$ === 'Ok') {
-			var v = result.a;
-			return $elm$core$Result$Ok(v);
-		} else {
-			var e = result.a;
-			return $elm$core$Result$Err(
-				f(e));
-		}
-	});
-var $elm$http$Http$BadBody = function (a) {
-	return {$: 'BadBody', a: a};
-};
-var $elm$http$Http$BadStatus = function (a) {
-	return {$: 'BadStatus', a: a};
-};
-var $elm$http$Http$BadUrl = function (a) {
-	return {$: 'BadUrl', a: a};
-};
-var $elm$http$Http$NetworkError = {$: 'NetworkError'};
-var $elm$http$Http$Timeout = {$: 'Timeout'};
-var $elm$http$Http$resolve = F2(
-	function (toResult, response) {
-		switch (response.$) {
-			case 'BadUrl_':
-				var url = response.a;
-				return $elm$core$Result$Err(
-					$elm$http$Http$BadUrl(url));
-			case 'Timeout_':
-				return $elm$core$Result$Err($elm$http$Http$Timeout);
-			case 'NetworkError_':
-				return $elm$core$Result$Err($elm$http$Http$NetworkError);
-			case 'BadStatus_':
-				var metadata = response.a;
-				return $elm$core$Result$Err(
-					$elm$http$Http$BadStatus(metadata.statusCode));
-			default:
-				var body = response.b;
-				return A2(
-					$elm$core$Result$mapError,
-					$elm$http$Http$BadBody,
-					toResult(body));
-		}
-	});
-var $elm$http$Http$expectJson = F2(
-	function (toMsg, decoder) {
-		return A2(
-			$elm$http$Http$expectStringResponse,
-			toMsg,
-			$elm$http$Http$resolve(
-				function (string) {
-					return A2(
-						$elm$core$Result$mapError,
-						$elm$json$Json$Decode$errorToString,
-						A2($elm$json$Json$Decode$decodeString, decoder, string));
-				}));
-	});
-var $elm$http$Http$emptyBody = _Http_emptyBody;
-var $elm$http$Http$Request = function (a) {
-	return {$: 'Request', a: a};
-};
-var $elm$http$Http$State = F2(
-	function (reqs, subs) {
-		return {reqs: reqs, subs: subs};
-	});
-var $elm$http$Http$init = $elm$core$Task$succeed(
-	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
-var $elm$core$Process$kill = _Scheduler_kill;
-var $elm$core$Process$spawn = _Scheduler_spawn;
-var $elm$http$Http$updateReqs = F3(
-	function (router, cmds, reqs) {
-		updateReqs:
-		while (true) {
-			if (!cmds.b) {
-				return $elm$core$Task$succeed(reqs);
-			} else {
-				var cmd = cmds.a;
-				var otherCmds = cmds.b;
-				if (cmd.$ === 'Cancel') {
-					var tracker = cmd.a;
-					var _v2 = A2($elm$core$Dict$get, tracker, reqs);
-					if (_v2.$ === 'Nothing') {
-						var $temp$router = router,
-							$temp$cmds = otherCmds,
-							$temp$reqs = reqs;
-						router = $temp$router;
-						cmds = $temp$cmds;
-						reqs = $temp$reqs;
-						continue updateReqs;
-					} else {
-						var pid = _v2.a;
-						return A2(
-							$elm$core$Task$andThen,
-							function (_v3) {
-								return A3(
-									$elm$http$Http$updateReqs,
-									router,
-									otherCmds,
-									A2($elm$core$Dict$remove, tracker, reqs));
-							},
-							$elm$core$Process$kill(pid));
-					}
-				} else {
-					var req = cmd.a;
-					return A2(
-						$elm$core$Task$andThen,
-						function (pid) {
-							var _v4 = req.tracker;
-							if (_v4.$ === 'Nothing') {
-								return A3($elm$http$Http$updateReqs, router, otherCmds, reqs);
-							} else {
-								var tracker = _v4.a;
-								return A3(
-									$elm$http$Http$updateReqs,
-									router,
-									otherCmds,
-									A3($elm$core$Dict$insert, tracker, pid, reqs));
-							}
-						},
-						$elm$core$Process$spawn(
-							A3(
-								_Http_toTask,
-								router,
-								$elm$core$Platform$sendToApp(router),
-								req)));
-				}
-			}
-		}
-	});
-var $elm$http$Http$onEffects = F4(
-	function (router, cmds, subs, state) {
-		return A2(
-			$elm$core$Task$andThen,
-			function (reqs) {
-				return $elm$core$Task$succeed(
-					A2($elm$http$Http$State, reqs, subs));
-			},
-			A3($elm$http$Http$updateReqs, router, cmds, state.reqs));
-	});
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
-var $elm$http$Http$maybeSend = F4(
-	function (router, desiredTracker, progress, _v0) {
-		var actualTracker = _v0.a;
-		var toMsg = _v0.b;
-		return _Utils_eq(desiredTracker, actualTracker) ? $elm$core$Maybe$Just(
-			A2(
-				$elm$core$Platform$sendToApp,
-				router,
-				toMsg(progress))) : $elm$core$Maybe$Nothing;
-	});
-var $elm$http$Http$onSelfMsg = F3(
-	function (router, _v0, state) {
-		var tracker = _v0.a;
-		var progress = _v0.b;
-		return A2(
-			$elm$core$Task$andThen,
-			function (_v1) {
-				return $elm$core$Task$succeed(state);
-			},
-			$elm$core$Task$sequence(
-				A2(
-					$elm$core$List$filterMap,
-					A3($elm$http$Http$maybeSend, router, tracker, progress),
-					state.subs)));
-	});
-var $elm$http$Http$Cancel = function (a) {
-	return {$: 'Cancel', a: a};
-};
-var $elm$http$Http$cmdMap = F2(
-	function (func, cmd) {
-		if (cmd.$ === 'Cancel') {
-			var tracker = cmd.a;
-			return $elm$http$Http$Cancel(tracker);
-		} else {
-			var r = cmd.a;
-			return $elm$http$Http$Request(
-				{
-					allowCookiesFromOtherDomains: r.allowCookiesFromOtherDomains,
-					body: r.body,
-					expect: A2(_Http_mapExpect, func, r.expect),
-					headers: r.headers,
-					method: r.method,
-					timeout: r.timeout,
-					tracker: r.tracker,
-					url: r.url
-				});
-		}
-	});
-var $elm$http$Http$MySub = F2(
-	function (a, b) {
-		return {$: 'MySub', a: a, b: b};
-	});
-var $elm$http$Http$subMap = F2(
-	function (func, _v0) {
-		var tracker = _v0.a;
-		var toMsg = _v0.b;
-		return A2(
-			$elm$http$Http$MySub,
-			tracker,
-			A2($elm$core$Basics$composeR, toMsg, func));
-	});
-_Platform_effectManagers['Http'] = _Platform_createManager($elm$http$Http$init, $elm$http$Http$onEffects, $elm$http$Http$onSelfMsg, $elm$http$Http$cmdMap, $elm$http$Http$subMap);
-var $elm$http$Http$command = _Platform_leaf('Http');
-var $elm$http$Http$subscription = _Platform_leaf('Http');
-var $elm$http$Http$request = function (r) {
-	return $elm$http$Http$command(
-		$elm$http$Http$Request(
-			{allowCookiesFromOtherDomains: false, body: r.body, expect: r.expect, headers: r.headers, method: r.method, timeout: r.timeout, tracker: r.tracker, url: r.url}));
-};
-var $elm$http$Http$get = function (r) {
-	return $elm$http$Http$request(
-		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
-};
-var $author$project$Pages$Survey$SomeData = F2(
-	function (one, two) {
-		return {one: one, two: two};
-	});
-var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom = $elm$json$Json$Decode$map2($elm$core$Basics$apR);
-var $elm$json$Json$Decode$andThen = _Json_andThen;
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
-	});
-var $elm$json$Json$Decode$decodeValue = _Json_run;
-var $elm$json$Json$Decode$null = _Json_decodeNull;
-var $elm$json$Json$Decode$oneOf = _Json_oneOf;
-var $elm$json$Json$Decode$value = _Json_decodeValue;
-var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optionalDecoder = F3(
-	function (path, valDecoder, fallback) {
-		var nullOr = function (decoder) {
-			return $elm$json$Json$Decode$oneOf(
-				_List_fromArray(
-					[
-						decoder,
-						$elm$json$Json$Decode$null(fallback)
-					]));
-		};
-		var handleResult = function (input) {
-			var _v0 = A2(
-				$elm$json$Json$Decode$decodeValue,
-				A2($elm$json$Json$Decode$at, path, $elm$json$Json$Decode$value),
-				input);
-			if (_v0.$ === 'Ok') {
-				var rawValue = _v0.a;
-				var _v1 = A2(
-					$elm$json$Json$Decode$decodeValue,
-					nullOr(valDecoder),
-					rawValue);
-				if (_v1.$ === 'Ok') {
-					var finalResult = _v1.a;
-					return $elm$json$Json$Decode$succeed(finalResult);
-				} else {
-					return A2(
-						$elm$json$Json$Decode$at,
-						path,
-						nullOr(valDecoder));
-				}
-			} else {
-				return $elm$json$Json$Decode$succeed(fallback);
-			}
-		};
-		return A2($elm$json$Json$Decode$andThen, handleResult, $elm$json$Json$Decode$value);
-	});
-var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optional = F4(
-	function (key, valDecoder, fallback, decoder) {
-		return A2(
-			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
-			A3(
-				$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optionalDecoder,
-				_List_fromArray(
-					[key]),
-				valDecoder,
-				fallback),
-			decoder);
-	});
-var $NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required = F3(
-	function (key, valDecoder, decoder) {
-		return A2(
-			$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$custom,
-			A2($elm$json$Json$Decode$field, key, valDecoder),
-			decoder);
-	});
-var $author$project$Pages$Survey$someDataDecoder = A4(
-	$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$optional,
-	'two',
-	$elm$json$Json$Decode$int,
-	0,
-	A3(
-		$NoRedInk$elm_json_decode_pipeline$Json$Decode$Pipeline$required,
-		'one',
-		$elm$json$Json$Decode$string,
-		$elm$json$Json$Decode$succeed($author$project$Pages$Survey$SomeData)));
-var $author$project$Pages$Survey$callGetData = function (id) {
-	return $elm$http$Http$get(
-		{
-			expect: A2($elm$http$Http$expectJson, $author$project$Pages$Survey$DataLoaded, $author$project$Pages$Survey$someDataDecoder),
-			url: 'http://someserver.com/' + id
-		});
-};
-var $author$project$Pages$Survey$getErrorMsg = function (httpError) {
-	switch (httpError.$) {
-		case 'BadUrl':
-			var url = httpError.a;
-			return 'Bad url: ' + url;
-		case 'Timeout':
-			return 'Call timed out';
-		case 'NetworkError':
-			return 'Network error';
-		case 'BadStatus':
-			var status = httpError.a;
-			return 'Server error' + $elm$core$String$fromInt(status);
-		default:
-			return 'Bad body';
-	}
-};
-var $author$project$Pages$Survey$update = F2(
+var $author$project$Styleguide$Dialog$openDialog = _Platform_outgoingPort('openDialog', $elm$json$Json$Encode$string);
+var $author$project$Pages$List$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
-			case 'SetLike':
-				var likeElm = msg.a;
+			case 'OpenAddNoteForm':
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{likeElm: likeElm}),
+						{addNoteFormOpen: true}),
+					$author$project$Styleguide$Dialog$openDialog($author$project$Pages$List$Main$addNoteDialogId));
+			case 'CloseAddNoteForm':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{addNoteFormOpen: false}),
+					$author$project$Styleguide$Dialog$closeDialog($author$project$Pages$List$Main$addNoteDialogId));
+			case 'UpdateNewNoteTitle':
+				var newNoteTitle = msg.a;
+				var prevNewNodeData = model.newNoteData;
+				var updatedNewNodeData = _Utils_update(
+					prevNewNodeData,
+					{title: newNoteTitle});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{newNoteData: updatedNewNodeData}),
 					$elm$core$Platform$Cmd$none);
-			case 'GotUserName':
-				var userName = msg.a;
+			case 'UpdateNewNoteText':
+				var newNoteText = msg.a;
+				var prevNewNodeData = model.newNoteData;
+				var updatedNewNodeData = _Utils_update(
+					prevNewNodeData,
+					{text: newNoteText});
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{name: userName}),
+						{newNoteData: updatedNewNodeData}),
 					$elm$core$Platform$Cmd$none);
-			case 'LoadData':
-				var id = msg.a;
+			case 'AddNote':
+				var cleanNewNoteData = {text: '', title: ''};
+				var _v1 = A2($author$project$Pages$List$Main$update, $author$project$Pages$List$Model$CloseAddNoteForm, model);
+				var updatedModel = _v1.a;
+				var closeFormCmd = _v1.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						updatedModel,
+						{newNoteData: cleanNewNoteData}),
+					$elm$core$Platform$Cmd$batch(
+						_List_fromArray(
+							[
+								closeFormCmd,
+								$author$project$Pages$List$Main$addNote(
+								A2(
+									$elm$json$Json$Encode$encode,
+									0,
+									$author$project$Pages$List$Main$newNoteDataEncoder(model.newNoteData)))
+							])));
+			case 'GotError':
+				var message = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{data: $author$project$Pages$Survey$Loading}),
-					$author$project$Pages$Survey$callGetData(id));
+						{
+							error: $elm$core$Maybe$Just(message)
+						}),
+					$elm$core$Platform$Cmd$none);
 			default:
-				if (msg.a.$ === 'Ok') {
-					var data = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								data: $author$project$Pages$Survey$Data(data)
-							}),
-						$elm$core$Platform$Cmd$none);
-				} else {
-					var error = msg.a.a;
-					return _Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								data: $author$project$Pages$Survey$Error(
-									$author$project$Pages$Survey$getErrorMsg(error))
-							}),
-						$elm$core$Platform$Cmd$none);
-				}
+				var notes = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{notes: notes}),
+					$elm$core$Platform$Cmd$none);
 		}
+	});
+var $author$project$Pages$Single$update = F2(
+	function (msg, model) {
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -6749,51 +6289,70 @@ var $author$project$Main$update = F2(
 							route: $author$project$Main$parseUrl(url)
 						}),
 					$elm$core$Platform$Cmd$none);
-			case 'GotCounterMsg':
-				var counterMsg = msg.a;
+			case 'GotListMsg':
+				var listMsg = msg.a;
 				var _v1 = model.route;
-				if (_v1.$ === 'CounterRoute') {
-					var _v2 = A2($author$project$Pages$Counter$update, counterMsg, model.counterPage);
-					var counterModel = _v2.a;
-					var counterCmd = _v2.b;
+				if (_v1.$ === 'ListRoute') {
+					var _v2 = A2($author$project$Pages$List$Main$update, listMsg, model.listPage);
+					var listMode = _v2.a;
+					var listCmd = _v2.b;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{counterPage: counterModel}),
-						A2($elm$core$Platform$Cmd$map, $author$project$Main$GotCounterMsg, counterCmd));
+							{listPage: listMode}),
+						A2($elm$core$Platform$Cmd$map, $author$project$Main$GotListMsg, listCmd));
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 			default:
-				var surveyMsg = msg.a;
-				var _v3 = A2($author$project$Pages$Survey$update, surveyMsg, model.surveyPage);
-				var survayModel = _v3.a;
-				var survayCmd = _v3.b;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{surveyPage: survayModel}),
-					A2($elm$core$Platform$Cmd$map, $author$project$Main$GotSurveyMsg, survayCmd));
+				var singleMsg = msg.a;
+				var _v3 = model.route;
+				if (_v3.$ === 'SingleRoute') {
+					var id = _v3.a;
+					var _v4 = A2(
+						$author$project$Pages$Single$update,
+						singleMsg,
+						{id: id, note: $elm$core$Maybe$Nothing});
+					var singleModel = _v4.a;
+					var singleCmd = _v4.b;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{singlePage: singleModel}),
+						A2($elm$core$Platform$Cmd$map, $author$project$Main$GotSingleMsg, singleCmd));
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
 		}
 	});
-var $elm$html$Html$footer = _VirtualDom_node('footer');
-var $author$project$Main$getTitle = function (route) {
-	switch (route.$) {
-		case 'CounterRoute':
-			return 'Elm SPA boilerplate - Counter';
-		case 'SurveyRoute':
-			return 'Elm SPA boilerplate - Survay';
-		default:
-			return 'Elm SPA boilerplate';
-	}
-};
-var $elm$html$Html$main_ = _VirtualDom_node('main');
+var $author$project$Main$getTitle = F2(
+	function (route, maybeNote) {
+		var noteTitle = function () {
+			if (maybeNote.$ === 'Just') {
+				var note = maybeNote.a;
+				return note.title;
+			} else {
+				return '';
+			}
+		}();
+		if (route.$ === 'SingleRoute') {
+			return 'Notebook - ' + noteTitle;
+		} else {
+			return 'Notebook';
+		}
+	});
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Pages$Counter$Decrement = {$: 'Decrement'};
-var $author$project$Pages$Counter$Increment = {$: 'Increment'};
+var $author$project$Pages$List$Model$OpenAddNoteForm = {$: 'OpenAddNoteForm'};
+var $author$project$Pages$List$Model$AddNote = {$: 'AddNote'};
+var $author$project$Pages$List$Model$UpdateNewNoteText = function (a) {
+	return {$: 'UpdateNewNoteText', a: a};
+};
+var $author$project$Pages$List$Model$UpdateNewNoteTitle = function (a) {
+	return {$: 'UpdateNewNoteTitle', a: a};
+};
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -6803,11 +6362,186 @@ var $elm$virtual_dom$VirtualDom$attribute = F2(
 	});
 var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$html$Html$div = _VirtualDom_node('div');
+var $author$project$Styleguide$Button$button = F2(
+	function (attributes, children) {
+		return A2($elm$html$Html$button, attributes, children);
+	});
+var $elm$html$Html$form = _VirtualDom_node('form');
+var $elm$html$Html$Events$alwaysStop = function (x) {
+	return _Utils_Tuple2(x, true);
+};
+var $elm$virtual_dom$VirtualDom$MayStopPropagation = function (a) {
+	return {$: 'MayStopPropagation', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$stopPropagationOn = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
+	});
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$html$Html$Events$targetValue = A2(
+	$elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'value']),
+	$elm$json$Json$Decode$string);
+var $elm$html$Html$Events$onInput = function (tagger) {
+	return A2(
+		$elm$html$Html$Events$stopPropagationOn,
+		'input',
+		A2(
+			$elm$json$Json$Decode$map,
+			$elm$html$Html$Events$alwaysStop,
+			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
+};
+var $elm$html$Html$Events$alwaysPreventDefault = function (msg) {
+	return _Utils_Tuple2(msg, true);
+};
+var $elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
+	return {$: 'MayPreventDefault', a: a};
+};
+var $elm$html$Html$Events$preventDefaultOn = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayPreventDefault(decoder));
+	});
+var $elm$html$Html$Events$onSubmit = function (msg) {
+	return A2(
+		$elm$html$Html$Events$preventDefaultOn,
+		'submit',
+		A2(
+			$elm$json$Json$Decode$map,
+			$elm$html$Html$Events$alwaysPreventDefault,
+			$elm$json$Json$Decode$succeed(msg)));
+};
+var $elm$html$Html$label = _VirtualDom_node('label');
+var $elm$html$Html$span = _VirtualDom_node('span');
+var $elm$html$Html$textarea = _VirtualDom_node('textarea');
+var $author$project$Styleguide$TextArea$textArea = F2(
+	function (_v0, labelText) {
+		var labelAttributes = _v0.labelAttributes;
+		var inputAttributes = _v0.inputAttributes;
+		return A2(
+			$elm$html$Html$label,
+			labelAttributes,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(labelText)
+						])),
+					A2($elm$html$Html$textarea, inputAttributes, _List_Nil)
+				]));
+	});
+var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
+var $author$project$Styleguide$TextBox$textBox = F2(
+	function (_v0, labelText) {
+		var labelAttributes = _v0.labelAttributes;
+		var inputAttributes = _v0.inputAttributes;
+		return A2(
+			$elm$html$Html$label,
+			labelAttributes,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(labelText)
+						])),
+					A2(
+					$elm$html$Html$input,
+					A2(
+						$elm$core$List$cons,
+						$elm$html$Html$Attributes$type_('text'),
+						inputAttributes),
+					_List_Nil)
+				]));
+	});
+var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $author$project$Pages$List$AddNoteForm$addNoteForm = function (newNoteData) {
+	return A2(
+		$elm$html$Html$form,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$attribute, 'data-testid', 'add-note-form'),
+				$elm$html$Html$Events$onSubmit($author$project$Pages$List$Model$AddNote)
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$author$project$Styleguide$TextBox$textBox,
+				{
+					inputAttributes: _List_fromArray(
+						[
+							$elm$html$Html$Attributes$value(newNoteData.title)
+						]),
+					labelAttributes: _List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$attribute, 'data-testid', 'note-title-input'),
+							$elm$html$Html$Events$onInput($author$project$Pages$List$Model$UpdateNewNoteTitle)
+						])
+				},
+				'Title'),
+				A2(
+				$author$project$Styleguide$TextArea$textArea,
+				{
+					inputAttributes: _List_fromArray(
+						[
+							$elm$html$Html$Attributes$value(newNoteData.text)
+						]),
+					labelAttributes: _List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$attribute, 'data-testid', 'note-text-input'),
+							$elm$html$Html$Events$onInput($author$project$Pages$List$Model$UpdateNewNoteText)
+						])
+				},
+				'content'),
+				A2(
+				$author$project$Styleguide$Button$button,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$attribute, 'data-testid', 'save-note-btn'),
+						$elm$html$Html$Attributes$type_('submit')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('save')
+					]))
+			]));
+};
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$html$Html$article = _VirtualDom_node('article');
+var $elm$html$Html$header = _VirtualDom_node('header');
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
+var $elm$html$Html$main_ = _VirtualDom_node('main');
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
 var $elm$html$Html$Events$on = F2(
 	function (event, decoder) {
 		return A2(
@@ -6821,52 +6555,50 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
-var $elm$html$Html$span = _VirtualDom_node('span');
-var $author$project$Pages$Counter$view = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick($author$project$Pages$Counter$Decrement)
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('-')
-					])),
-				A2(
-				$elm$html$Html$span,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$attribute, 'data-testid', 'counter-display')
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(
-						$elm$core$String$fromInt(model.counter))
-					])),
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick($author$project$Pages$Counter$Increment)
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('+')
-					]))
-			]));
-};
-var $author$project$Pages$Survey$LoadData = function (a) {
-	return {$: 'LoadData', a: a};
-};
-var $author$project$Pages$Survey$SetLike = function (a) {
-	return {$: 'SetLike', a: a};
-};
+var $elm$html$Html$p = _VirtualDom_node('p');
+var $author$project$Styleguide$Dialog$dialog = F4(
+	function (elementId, onCloseMsg, attr, content) {
+		return A3(
+			$elm$html$Html$node,
+			'dialog',
+			A2(
+				$elm$core$List$cons,
+				$elm$html$Html$Attributes$id(elementId),
+				attr),
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$article,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$header,
+							_List_Nil,
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$p,
+									_List_Nil,
+									_List_fromArray(
+										[
+											$elm$html$Html$text('')
+										])),
+									A2(
+									$elm$html$Html$button,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$attribute, 'aria-label', 'Close'),
+											A2($elm$html$Html$Attributes$attribute, 'rel', 'prev'),
+											$elm$html$Html$Events$onClick(onCloseMsg)
+										]),
+									_List_Nil)
+								])),
+							A2($elm$html$Html$main_, _List_Nil, content)
+						]))
+				]));
+	});
+var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$json$Json$Encode$bool = _Json_wrap;
 var $elm$html$Html$Attributes$boolProperty = F2(
 	function (key, bool) {
@@ -6875,268 +6607,131 @@ var $elm$html$Html$Attributes$boolProperty = F2(
 			key,
 			$elm$json$Json$Encode$bool(bool));
 	});
-var $elm$html$Html$Attributes$checked = $elm$html$Html$Attributes$boolProperty('checked');
-var $elm$html$Html$input = _VirtualDom_node('input');
-var $elm$html$Html$label = _VirtualDom_node('label');
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$Pages$Survey$showData = function (callResult) {
-	switch (callResult.$) {
-		case 'Loading':
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Loading...')
-					]));
-		case 'Data':
-			var data = callResult.a;
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text(
-						'one: ' + (data.one + (', two: ' + $elm$core$String$fromInt(data.two))))
-					]));
-		case 'Error':
-			var errorMsg = callResult.a;
-			return A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text(errorMsg)
-					]));
-		default:
-			return A2($elm$html$Html$div, _List_Nil, _List_Nil);
-	}
-};
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
+var $elm$html$Html$Attributes$hidden = $elm$html$Html$Attributes$boolProperty('hidden');
+var $author$project$Pages$List$Main$errorAlert = function (maybeError) {
+	if (maybeError.$ === 'Just') {
+		var errorMessage = maybeError.a;
 		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
-var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
-var $author$project$Pages$Survey$view = function (model) {
-	return A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Hi, ' + model.name)
-					])),
-				A2(
-				$elm$html$Html$label,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$input,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$type_('checkbox'),
-								$elm$html$Html$Attributes$checked(model.likeElm),
-								$elm$html$Html$Events$onClick(
-								$author$project$Pages$Survey$SetLike(!model.likeElm))
-							]),
-						_List_Nil),
-						$elm$html$Html$text('Do you like Elm?')
-					])),
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick(
-						$author$project$Pages$Survey$LoadData('foo'))
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Load some data!')
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$div,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text('call result')
-							])),
-						$author$project$Pages$Survey$showData(model.data)
-					]))
-			]));
-};
-var $elm$html$Html$header = _VirtualDom_node('header');
-var $elm$html$Html$nav = _VirtualDom_node('nav');
-var $elm$html$Html$a = _VirtualDom_node('a');
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $elm$html$Html$Attributes$classList = function (classes) {
-	return $elm$html$Html$Attributes$class(
-		A2(
-			$elm$core$String$join,
-			' ',
-			A2(
-				$elm$core$List$map,
-				$elm$core$Tuple$first,
-				A2($elm$core$List$filter, $elm$core$Tuple$second, classes))));
-};
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var $author$project$Main$navLink = F2(
-	function (isActive, _v0) {
-		var url = _v0.url;
-		var label = _v0.label;
-		return A2(
-			$elm$html$Html$a,
+			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$href(url),
-					$elm$html$Html$Attributes$classList(
-					_List_fromArray(
-						[
-							_Utils_Tuple2('active', isActive)
-						]))
+					$elm$html$Html$Attributes$class('error')
 				]),
 			_List_fromArray(
 				[
-					$elm$html$Html$text(label)
+					$elm$html$Html$text(errorMessage)
 				]));
-	});
-var $elm$html$Html$ul = _VirtualDom_node('ul');
-var $author$project$Main$viewHeader = F2(
-	function (activeRoute, userName) {
-		var isActive = F2(
-			function (routeA, routeB) {
-				var _v0 = _Utils_Tuple2(routeA, routeB);
-				_v0$2:
-				while (true) {
-					switch (_v0.a.$) {
-						case 'CounterRoute':
-							if (_v0.b.$ === 'CounterRoute') {
-								var _v1 = _v0.a;
-								var _v2 = _v0.b;
-								return true;
-							} else {
-								break _v0$2;
-							}
-						case 'SurveyRoute':
-							if (_v0.b.$ === 'SurveyRoute') {
-								return true;
-							} else {
-								break _v0$2;
-							}
-						default:
-							break _v0$2;
-					}
-				}
-				return false;
-			});
+	} else {
 		return A2(
-			$elm$html$Html$header,
-			_List_Nil,
+			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					A2(
-					$elm$html$Html$nav,
-					_List_Nil,
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$ul,
-							_List_Nil,
-							_List_fromArray(
-								[
-									A2(
-									$author$project$Main$navLink,
-									A2(isActive, activeRoute, $author$project$Main$CounterRoute),
-									{label: 'Counter', url: '/'}),
-									A2(
-									$author$project$Main$navLink,
-									A2(
-										isActive,
-										activeRoute,
-										$author$project$Main$SurveyRoute('')),
-									{label: 'Survey ' + userName, url: '/survey/' + userName})
-								]))
-						]))
-				]));
-	});
-var $author$project$Main$view = function (model) {
-	var content = function () {
-		var _v0 = model.route;
-		switch (_v0.$) {
-			case 'CounterRoute':
-				return A2(
-					$elm$html$Html$map,
-					$author$project$Main$GotCounterMsg,
-					$author$project$Pages$Counter$view(model.counterPage));
-			case 'SurveyRoute':
-				var userName = _v0.a;
-				var survayModel = model.surveyPage;
-				return A2(
-					$elm$html$Html$map,
-					$author$project$Main$GotSurveyMsg,
-					$author$project$Pages$Survey$view(
-						_Utils_update(
-							survayModel,
-							{name: userName})));
-			default:
-				return $elm$html$Html$text('Sorry, I did\'t find this page');
-		}
-	}();
-	return {
-		body: _List_fromArray(
+					$elm$html$Html$Attributes$hidden(true)
+				]),
+			_List_Nil);
+	}
+};
+var $author$project$Pages$List$NoteCard$noteCard = function (note) {
+	return A2(
+		$elm$html$Html$article,
+		_List_fromArray(
 			[
-				A2($author$project$Main$viewHeader, model.route, model.surveyPage.name),
+				A2($elm$html$Html$Attributes$attribute, 'data-testid', 'note')
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$header,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(note.title)
+					])),
 				A2(
 				$elm$html$Html$main_,
 				_List_Nil,
 				_List_fromArray(
-					[content])),
-				A2(
-				$elm$html$Html$footer,
-				_List_Nil,
-				_List_fromArray(
 					[
-						$elm$html$Html$text('Elm SPA boilerplate')
+						$elm$html$Html$text(note.text)
 					]))
-			]),
-		title: $author$project$Main$getTitle(model.route)
+			]));
+};
+var $author$project$Pages$List$Main$view = function (model) {
+	return _List_fromArray(
+		[
+			A4(
+			$author$project$Styleguide$Dialog$dialog,
+			$author$project$Pages$List$Main$addNoteDialogId,
+			$author$project$Pages$List$Model$CloseAddNoteForm,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$author$project$Pages$List$AddNoteForm$addNoteForm(model.newNoteData)
+				])),
+			A2(
+			$elm$html$Html$main_,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('container')
+				]),
+			A2($elm$core$List$map, $author$project$Pages$List$NoteCard$noteCard, model.notes)),
+			$author$project$Pages$List$Main$errorAlert(model.error),
+			A2(
+			$elm$html$Html$button,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$attribute, 'data-testid', 'add-note-btn'),
+					$elm$html$Html$Attributes$class('add-note-btn'),
+					$elm$html$Html$Attributes$class('fab'),
+					$elm$html$Html$Events$onClick($author$project$Pages$List$Model$OpenAddNoteForm)
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('+')
+				]))
+		]);
+};
+var $author$project$Pages$Single$view = function (_v0) {
+	return _List_fromArray(
+		[
+			A2($elm$html$Html$div, _List_Nil, _List_Nil)
+		]);
+};
+var $author$project$Main$view = function (model) {
+	var content = function () {
+		var _v0 = model.route;
+		switch (_v0.$) {
+			case 'ListRoute':
+				return A2(
+					$elm$core$List$map,
+					$elm$html$Html$map($author$project$Main$GotListMsg),
+					$author$project$Pages$List$Main$view(model.listPage));
+			case 'SingleRoute':
+				var id = _v0.a;
+				var singleModel = model.singlePage;
+				return A2(
+					$elm$core$List$map,
+					$elm$html$Html$map($author$project$Main$GotSingleMsg),
+					$author$project$Pages$Single$view(
+						_Utils_update(
+							singleModel,
+							{id: id})));
+			default:
+				return _List_fromArray(
+					[
+						$elm$html$Html$text('Sorry, I did\'t find this page')
+					]);
+		}
+	}();
+	return {
+		body: content,
+		title: A2($author$project$Main$getTitle, model.route, model.singlePage.note)
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$application(
 	{init: $author$project$Main$init, onUrlChange: $author$project$Main$ChangedUrl, onUrlRequest: $author$project$Main$ClickedLink, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
-_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$int)(0)}});
+_Platform_export({'Main':{'init':$author$project$Main$main(
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});
 
 //////////////////// HMR BEGIN ////////////////////
 
