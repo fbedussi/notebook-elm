@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "build": "elm make src/Main.elm --optimize --output=index.js",
+    "build": "elm make src/Main.elm --optimize --output=build/app.js",
     "test": "npx elm-test \"src/**/*Test.elm\" --watch",
-    "start": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=app.js",
-    "start:debug": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=app.js --debug",
+    "start": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=build/app.js",
+    "start:debug": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=build/app.js --debug",
     "e2e": "npx playwright test",
     "e2e:ui": "npx playwright test --ui"
   },

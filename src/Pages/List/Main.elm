@@ -12,7 +12,7 @@ import Pages.List.Model exposing (Model, Msg(..), NewNoteData)
 import Pages.List.NoteCard exposing (noteCard)
 import Pages.Single exposing (update)
 import Styleguide.Dialog exposing (closeDialog, dialog, openDialog)
-import Time exposing (Posix, millisToPosix)
+import Time exposing (Posix, millisToPosix, posixToMillis)
 
 
 port addNote : String -> Cmd msg
@@ -108,10 +108,30 @@ view model =
         CloseAddNoteForm
         []
         [ addNoteForm model.newNoteData ]
-    , main_ [ class "container" ] (List.map noteCard model.notes)
+    , main_ [ class "container" ] (model.notes |> List.sortWith newestFirst |> List.map noteCard)
     , errorAlert model.error
     , button [ attribute "data-testid" "add-note-btn", class "add-note-btn", class "fab", onClick OpenAddNoteForm ] [ text "+" ]
     ]
+
+
+newestFirst : Note -> Note -> Order
+newestFirst noteA noteB =
+    let
+        updatedAtA =
+            posixToMillis noteA.updatedAt
+
+        updatedAtB =
+            posixToMillis noteB.updatedAt
+    in
+    case compare updatedAtA updatedAtB of
+        LT ->
+            GT
+
+        EQ ->
+            EQ
+
+        GT ->
+            LT
 
 
 errorAlert : Maybe String -> Html Msg

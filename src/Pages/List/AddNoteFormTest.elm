@@ -6,7 +6,7 @@ import Pages.List.AddNoteForm exposing (addNoteForm)
 import ProgramTest exposing (..)
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
-import Test.Html.Selector
+import Test.Html.Selector exposing (disabled, tag)
 
 
 addNoteFormTest : Test
@@ -21,4 +21,10 @@ addNoteFormTest =
                         , Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "note-text-input"
                         , Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "save-note-btn"
                         ]
+        , test "the submit butto is disabled if the form is empty" <|
+            \_ ->
+                addNoteForm { title = "", text = "" }
+                    |> Query.fromHtml
+                    |> Query.find [ tag "button", Test.Html.Selector.attribute <| Html.Attributes.attribute "type" <| "submit" ]
+                    |> Query.has [ disabled True ]
         ]
