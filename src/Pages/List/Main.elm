@@ -1,24 +1,28 @@
-port module Pages.List.Main exposing (init, subscriptions, update, view)
+port module Pages.List.Main exposing (getNotes, init, subscriptions, update, view)
 
-import Html exposing (Html, button, div, main_, text)
-import Html.Attributes exposing (attribute, class, hidden)
+import Decoders exposing (notesDecoder)
+import Html exposing (Html, button, header, main_, text)
+import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import Json.Decode exposing (Decoder, Value, int, string, succeed)
-import Json.Decode.Pipeline exposing (required)
+import Json.Decode
 import Json.Encode
 import Model exposing (Note)
 import Pages.List.AddNoteForm exposing (addNoteForm)
 import Pages.List.Model exposing (Model, Msg(..), NewNoteData)
 import Pages.List.NoteCard exposing (noteCard)
-import Pages.Single exposing (update)
 import Styleguide.Dialog exposing (closeDialog, dialog, openDialog)
-import Time exposing (Posix, millisToPosix, posixToMillis)
+import Styleguide.ErrorAlert exposing (errorAlert)
+import Styleguide.Icons.Plus exposing (plusIcon)
+import Time exposing (posixToMillis)
 
 
 port addNote : String -> Cmd msg
 
 
-port gotNotes : (Value -> msg) -> Sub msg
+port getNotes : () -> Cmd msg
+
+
+port gotNotes : (Json.Decode.Value -> msg) -> Sub msg
 
 
 addNoteDialogId : String
@@ -72,7 +76,7 @@ update msg model =
             ( { model | notes = notes }, Cmd.none )
 
 
-newNoteDataEncoder : NewNoteData -> Value
+newNoteDataEncoder : NewNoteData -> Json.Encode.Value
 newNoteDataEncoder newNoteData =
     Json.Encode.object
         [ ( "title", Json.Encode.string newNoteData.title )
@@ -80,25 +84,18 @@ newNoteDataEncoder newNoteData =
         ]
 
 
-noteDecoder : Decoder Note
-noteDecoder =
-    succeed Note
-        |> required "id" string
-        |> required "title" string
-        |> required "text" string
-        |> required "createdAt" decodePosix
-        |> required "updatedAt" decodePosix
+decodeNotes : Json.Decode.Value -> Msg
+decodeNotes value =
+    let
+        decodedValue =
+            Json.Decode.decodeValue notesDecoder value
+    in
+    case decodedValue of
+        Ok notes ->
+            GotNotes notes
 
-
-decodePosix : Decoder Posix
-decodePosix =
-    int
-        |> Json.Decode.map millisToPosix
-
-
-notesDecoder : Decoder (List Note)
-notesDecoder =
-    Json.Decode.list noteDecoder
+        Err error ->
+            GotError ("Error decoding notes: " ++ Json.Decode.errorToString error)
 
 
 view : Model -> List (Html Msg)
@@ -108,9 +105,10 @@ view model =
         CloseAddNoteForm
         []
         [ addNoteForm model.newNoteData ]
+    , header [] [ text "Notebook" ]
     , main_ [ class "container" ] (model.notes |> List.sortWith newestFirst |> List.map noteCard)
     , errorAlert model.error
-    , button [ attribute "data-testid" "add-note-btn", class "add-note-btn", class "fab", onClick OpenAddNoteForm ] [ text "+" ]
+    , button [ attribute "data-testid" "add-note-btn", class "add-note-btn", class "fab", onClick OpenAddNoteForm ] [ plusIcon ]
     ]
 
 
@@ -134,40 +132,18 @@ newestFirst noteA noteB =
             LT
 
 
-errorAlert : Maybe String -> Html Msg
-errorAlert maybeError =
-    case maybeError of
-        Just errorMessage ->
-            div [ class "error" ] [ text errorMessage ]
-
-        Nothing ->
-            div [ hidden True ] []
-
-
-init : () -> Model
+init : () -> ( Model, Cmd Msg )
 init () =
-    { notes = []
-    , addNoteFormOpen = False
-    , newNoteData =
-        { title = ""
-        , text = ""
-        }
-    , error = Nothing
-    }
-
-
-decodeNotes : Value -> Msg
-decodeNotes value =
-    let
-        decodedValue =
-            Json.Decode.decodeValue notesDecoder value
-    in
-    case decodedValue of
-        Ok notes ->
-            GotNotes notes
-
-        Err error ->
-            GotError ("Error decoding notes: " ++ Json.Decode.errorToString error)
+    ( { notes = []
+      , addNoteFormOpen = False
+      , newNoteData =
+            { title = ""
+            , text = ""
+            }
+      , error = Nothing
+      }
+    , getNotes ()
+    )
 
 
 subscriptions : () -> Sub Msg

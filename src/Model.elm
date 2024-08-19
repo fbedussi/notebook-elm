@@ -13,6 +13,7 @@ type alias Note =
     , text : String
     , createdAt : Time.Posix
     , updatedAt : Time.Posix
+    , version: Int
     }
 
 

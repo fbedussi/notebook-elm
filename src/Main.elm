@@ -1,4 +1,4 @@
-port module Main exposing (Route(..), main, getTitle)
+port module Main exposing (Route(..), getTitle, main)
 
 import Browser
 import Browser.Navigation as Nav
@@ -6,7 +6,8 @@ import Html exposing (..)
 import Model exposing (Id, Note)
 import Pages.List.Main as ListPage
 import Pages.List.Model
-import Pages.Single
+import Pages.Single.Main as SinglePage
+import Pages.Single.Model
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
 
@@ -15,7 +16,7 @@ type alias Model =
     { navigationKey : Nav.Key
     , route : Route
     , listPage : Pages.List.Model.Model
-    , singlePage : Pages.Single.Model
+    , singlePage : Pages.Single.Model.Model
     }
 
 
@@ -53,7 +54,7 @@ view model =
                         singleModel =
                             model.singlePage
                     in
-                    Pages.Single.view { singleModel | id = id }
+                    SinglePage.view { singleModel | id = id }
                         |> List.map (Html.map GotSingleMsg)
 
                 NotFoundRoute ->
@@ -90,7 +91,7 @@ type Msg
     | PerformUrlChange String
     | ChangedUrl Url
     | GotListMsg Pages.List.Model.Msg
-    | GotSingleMsg Pages.Single.Msg
+    | GotSingleMsg Pages.Single.Model.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -106,8 +107,23 @@ update msg model =
             ( model, Nav.pushUrl model.navigationKey urlString )
 
         ChangedUrl url ->
-            ( { model | route = parseUrl url }
-            , Cmd.none
+            let
+                route =
+                    parseUrl url
+
+                cmd =
+                    case route of
+                        SingleRoute id ->
+                            SinglePage.getNote id
+
+                        ListRoute ->
+                            ListPage.getNotes ()
+
+                        NotFoundRoute ->
+                            Cmd.none
+            in
+            ( { model | route = route }
+            , cmd
             )
 
         GotListMsg listMsg ->
@@ -126,8 +142,11 @@ update msg model =
             case model.route of
                 SingleRoute id ->
                     let
+                        oldSingleModel =
+                            model.singlePage
+
                         ( singleModel, singleCmd ) =
-                            Pages.Single.update singleMsg { id = id, note = Nothing }
+                            SinglePage.update singleMsg { oldSingleModel | id = id }
                     in
                     ( { model | singlePage = singleModel }, Cmd.map GotSingleMsg singleCmd )
 
@@ -170,17 +189,28 @@ init () url navigationKey =
 
                 _ ->
                     ""
+
+        ( listPageModel, listPageCmd ) =
+            ListPage.init ()
+
+        ( singlePageModel, singlePageCmd ) =
+            SinglePage.init selectedNoteId
     in
     ( { navigationKey = navigationKey
       , route = route
-      , listPage = ListPage.init ()
-      , singlePage = Pages.Single.init selectedNoteId
+      , listPage = listPageModel
+      , singlePage = singlePageModel
       }
-    , Cmd.none
+    , Cmd.batch [ singlePageCmd |> Cmd.map GotSingleMsg, listPageCmd |> Cmd.map GotListMsg ]
     )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    ListPage.subscriptions ()
-        |> Sub.map GotListMsg
+    Sub.batch
+        [ performUrlChange PerformUrlChange
+        , ListPage.subscriptions ()
+            |> Sub.map GotListMsg
+        , SinglePage.subscriptions ()
+            |> Sub.map GotSingleMsg
+        ]

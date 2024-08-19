@@ -11,4 +11,5 @@ mockedNote =
     , text = "fake text"
     , createdAt = millisToPosix 1
     , updatedAt = millisToPosix 1
+    , version = 1
     }

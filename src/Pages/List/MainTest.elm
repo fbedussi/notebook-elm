@@ -14,7 +14,7 @@ import Time exposing (millisToPosix)
 
 
 model =
-    init ()
+    Tuple.first (init ())
 
 
 listPageTest : Test

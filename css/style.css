@@ -1,3 +1,6 @@
+/*******************
+* View Transitions
+********************/
 @view-transition {
   navigation: auto;
 }
@@ -69,6 +72,22 @@
   animation: 0.4s ease-in both move-in-two;
 }
 
+/***************
+* General rules
+****************/
+a.no-style {
+  color: inherit;
+  text-decoration: none;
+}
+
+svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/*************
+* Components
+*************/
 .fab {
   position: fixed;
   bottom: 1rem;
@@ -80,4 +99,18 @@
   padding: 0;
   width: 3rem;
   height: 3rem;
+}
+
+body>header {
+  background-color: var(--pico-primary-background);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  color: var(--pico-primary-inverse);
+}
+
+.note-card {
+  footer {
+    display: flex;
+    justify-content: flex-end;
+  }
 }
