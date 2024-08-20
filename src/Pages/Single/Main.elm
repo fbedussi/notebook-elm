@@ -1,7 +1,8 @@
 port module Pages.Single.Main exposing (getNote, init, subscriptions, update, view)
 
+import Constants exposing (..)
 import Decoders exposing (noteDecoder)
-import Html exposing (Html, a, button, header, main_, text)
+import Html exposing (Html, a, header, main_)
 import Html.Attributes exposing (attribute, class, href)
 import Json.Decode exposing (Value)
 import Json.Encode

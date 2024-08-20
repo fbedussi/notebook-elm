@@ -10,7 +10,7 @@ import Pages.Single.Main as SinglePage
 import Pages.Single.Model
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
-
+import Constants exposing (..)
 
 type alias Model =
     { navigationKey : Nav.Key
@@ -32,7 +32,9 @@ parseUrl url =
         parse =
             Url.Parser.oneOf
                 [ Url.Parser.map ListRoute Url.Parser.top
+                , Url.Parser.map ListRoute (Url.Parser.s basePath)
                 , Url.Parser.map SingleRoute (Url.Parser.s "note" </> Url.Parser.string)
+                , Url.Parser.map SingleRoute (Url.Parser.s basePath </> Url.Parser.s "note" </> Url.Parser.string)
                 ]
                 |> Url.Parser.parse
     in
