@@ -19,5 +19,5 @@ noteCard note =
             [ text note.text ]
         , footer
             []
-            [ a [ href ("/note/" ++ note.id), class "no-style", attribute "data-testid" "edit-btn" ] [ editIcon ] ]
+            [ a [ href ("./note/" ++ note.id), class "no-style", attribute "data-testid" "edit-btn" ] [ editIcon ] ]
         ]

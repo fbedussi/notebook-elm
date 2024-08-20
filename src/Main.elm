@@ -1,52 +1,35 @@
-port module Main exposing (Route(..), getTitle, main)
+module Main exposing (getTitle, main)
 
 import Browser
 import Browser.Navigation as Nav
+import Constants exposing (..)
 import Html exposing (..)
-import Model exposing (Id, Note)
+import Model exposing (Note)
 import Pages.List.Main as ListPage
 import Pages.List.Model
 import Pages.Single.Main as SinglePage
 import Pages.Single.Model
+import Router exposing (Route(..), parseUrl, performUrlChange, sendUrlChangeRequest)
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
-import Constants exposing (..)
+
 
 type alias Model =
-    { navigationKey : Nav.Key
-    , route : Route
+    { navigation :
+        { key : Nav.Key
+        , route : Route
+        , basePath : String
+        }
     , listPage : Pages.List.Model.Model
     , singlePage : Pages.Single.Model.Model
     }
-
-
-type Route
-    = ListRoute
-    | SingleRoute Id
-    | NotFoundRoute
-
-
-parseUrl : Url -> Route
-parseUrl url =
-    let
-        parse =
-            Url.Parser.oneOf
-                [ Url.Parser.map ListRoute Url.Parser.top
-                , Url.Parser.map ListRoute (Url.Parser.s basePath)
-                , Url.Parser.map SingleRoute (Url.Parser.s "note" </> Url.Parser.string)
-                , Url.Parser.map SingleRoute (Url.Parser.s basePath </> Url.Parser.s "note" </> Url.Parser.string)
-                ]
-                |> Url.Parser.parse
-    in
-    parse url
-        |> Maybe.withDefault NotFoundRoute
 
 
 view : Model -> Browser.Document Msg
 view model =
     let
         content =
-            case model.route of
+            case model.navigation.route of
                 ListRoute ->
                     ListPage.view model.listPage
                         |> List.map (Html.map GotListMsg)
@@ -63,7 +46,7 @@ view model =
                     [ text "Sorry, I did't find this page" ]
     in
     { title =
-        getTitle model.route model.singlePage.note
+        getTitle model.navigation.route model.singlePage.note
     , body =
         content
     }
@@ -106,12 +89,12 @@ update msg model =
             ( model, Nav.load string )
 
         PerformUrlChange urlString ->
-            ( model, Nav.pushUrl model.navigationKey urlString )
+            ( model, Nav.pushUrl model.navigation.key urlString )
 
         ChangedUrl url ->
             let
                 route =
-                    parseUrl url
+                    parseUrl model.navigation.basePath url
 
                 cmd =
                     case route of
@@ -123,13 +106,16 @@ update msg model =
 
                         NotFoundRoute ->
                             Cmd.none
+
+                navigation =
+                    model.navigation
             in
-            ( { model | route = route }
+            ( { model | navigation = { navigation | route = route } }
             , cmd
             )
 
         GotListMsg listMsg ->
-            case model.route of
+            case model.navigation.route of
                 ListRoute ->
                     let
                         ( listMode, listCmd ) =
@@ -141,7 +127,7 @@ update msg model =
                     ( model, Cmd.none )
 
         GotSingleMsg singleMsg ->
-            case model.route of
+            case model.navigation.route of
                 SingleRoute id ->
                     let
                         oldSingleModel =
@@ -156,14 +142,8 @@ update msg model =
                     ( model, Cmd.none )
 
 
-port sendUrlChangeRequest : String -> Cmd msg
-
-
-port performUrlChange : (String -> msg) -> Sub msg
-
-
 type alias Flags =
-    ()
+    { basePath : String }
 
 
 main : Program Flags Model Msg
@@ -179,10 +159,10 @@ main =
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init () url navigationKey =
+init { basePath } url navigationKey =
     let
         route =
-            parseUrl url
+            parseUrl basePath url
 
         selectedNoteId =
             case route of
@@ -198,8 +178,11 @@ init () url navigationKey =
         ( singlePageModel, singlePageCmd ) =
             SinglePage.init selectedNoteId
     in
-    ( { navigationKey = navigationKey
-      , route = route
+    ( { navigation =
+            { key = navigationKey
+            , route = route
+            , basePath = basePath
+            }
       , listPage = listPageModel
       , singlePage = singlePageModel
       }

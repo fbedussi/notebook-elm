@@ -80,7 +80,7 @@ noteEncoder note =
 view : Model -> List (Html Msg)
 view model =
     [ header []
-        [ a [ href "/", attribute "data-testid" "back-btn", class "no-style" ] [ backIcon ]
+        [ a [ href "./", attribute "data-testid" "back-btn", class "no-style" ] [ backIcon ]
         ]
     , main_ [ class "container" ] [ editNoteForm model.isFormDirty model.note ]
     , errorAlert model.error

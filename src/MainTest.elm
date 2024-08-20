@@ -3,6 +3,7 @@ module MainTest exposing (..)
 import Expect
 import Main exposing (..)
 import Mockers exposing (mockedNote)
+import Router exposing (..)
 import Test exposing (..)
 
 

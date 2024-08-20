@@ -1,7 +1,9 @@
 import { handleDialog } from './dialog.js'
 import { handlePageChange } from './changePage.js'
 
-const elmApp = Elm.Main.init();
+const basePath = new URL(document.baseURI).pathname;
+
+const elmApp = Elm.Main.init({flags: { basePath }});
 
 handleDialog(elmApp)
 
