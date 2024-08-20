@@ -11,6 +11,9 @@ jobs:
         run: npm ci
 
       - name: Unit Tests
+        uses: jorelali/setup-elm@v5
+        with:
+          elm-version: 0.19.1
         run: npm run test:ci
 
       - name: Install Playwright Browsers
@@ -18,7 +21,7 @@ jobs:
 
       - name: Run Playwright tests
         run: npm run e2e
-        
+
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
