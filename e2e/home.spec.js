@@ -2,7 +2,7 @@
 const { test, expect } = require('@playwright/test');
 
 test('can add a note', async ({ page }) => {
-  await page.goto('http://localhost:8000/');
+  await page.goto('/');
 
   await expect(page.getByTestId('add-note-form')).not.toBeVisible()
 
