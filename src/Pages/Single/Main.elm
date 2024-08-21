@@ -1,10 +1,11 @@
-port module Pages.Single.Main exposing (getNote, init, subscriptions, update, view)
+module Pages.Single.Main exposing (init, subscriptions, update, view)
 
+import Backend exposing (getNote, gotNote)
 import Constants exposing (..)
 import Decoders exposing (noteDecoder)
 import Html exposing (Html, a, header, main_)
 import Html.Attributes exposing (attribute, class, href)
-import Json.Decode exposing (Value)
+import Json.Decode
 import Json.Encode
 import Model exposing (Id, Note)
 import Pages.Single.EditNoteForm exposing (editNoteForm)
@@ -12,15 +13,6 @@ import Pages.Single.Model exposing (Model, Msg(..))
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Back exposing (backIcon)
 import Time exposing (posixToMillis)
-
-
-port getNote : String -> Cmd msg
-
-
-port saveNote : Value -> Cmd msg
-
-
-port gotNote : (Value -> msg) -> Sub msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -35,7 +27,7 @@ update msg model =
         SaveNote ->
             case model.note of
                 Just note ->
-                    ( { model | isFormDirty = False }, saveNote (noteEncoder note) )
+                    ( { model | isFormDirty = False }, Backend.saveNote (noteEncoder note) )
 
                 Nothing ->
                     ( model, Cmd.none )

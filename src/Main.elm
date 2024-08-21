@@ -12,7 +12,7 @@ import Pages.Single.Model
 import Router exposing (Route(..), parseUrl, performUrlChange, sendUrlChangeRequest)
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
-
+import Backend
 
 type alias Model =
     { navigation :
@@ -99,10 +99,10 @@ update msg model =
                 cmd =
                     case route of
                         SingleRoute id ->
-                            SinglePage.getNote id
+                            Backend.getNote id
 
                         ListRoute ->
-                            ListPage.getNotes ()
+                            Backend.getNotes ()
 
                         NotFoundRoute ->
                             Cmd.none

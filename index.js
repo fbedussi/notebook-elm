@@ -38,3 +38,9 @@ elmApp.ports.saveNote.subscribe(note => {
   window.localStorage.setItem('notes', JSON.stringify(notes))
   elmApp.ports.gotNote.send(note)
 })
+
+elmApp.ports.delNote.subscribe(noteId => {
+  notes = notes.filter(note => note.id !== noteId)
+  window.localStorage.setItem('notes', JSON.stringify(notes))
+  elmApp.ports.gotNotes.send(notes)
+})

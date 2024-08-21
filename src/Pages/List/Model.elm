@@ -1,6 +1,6 @@
 module Pages.List.Model exposing (..)
 
-import Model exposing (Notes)
+import Model exposing (Id, Note, Notes)
 
 
 type alias NewNoteData =
@@ -13,6 +13,7 @@ type alias Model =
     { notes : Notes
     , addNoteFormOpen : Bool
     , newNoteData : NewNoteData
+    , noteToDelete : Maybe Note
     , error : Maybe String
     }
 
@@ -20,8 +21,12 @@ type alias Model =
 type Msg
     = OpenAddNoteForm
     | CloseAddNoteForm
+    | DialogClosed ()
+    | OpenDelNoteForm Note
+    | CloseDelNoteForm
     | UpdateNewNoteTitle String
     | UpdateNewNoteText String
     | AddNote
     | GotNotes Notes
     | GotError String
+    | DelNote Id

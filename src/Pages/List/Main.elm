@@ -1,5 +1,6 @@
-port module Pages.List.Main exposing (getNotes, init, subscriptions, update, view)
+module Pages.List.Main exposing (init, subscriptions, update, view)
 
+import Backend exposing (delNote)
 import Decoders exposing (notesDecoder)
 import Html exposing (Html, button, header, main_, text)
 import Html.Attributes exposing (attribute, class)
@@ -8,26 +9,23 @@ import Json.Decode
 import Json.Encode
 import Model exposing (Note)
 import Pages.List.AddNoteForm exposing (addNoteForm)
+import Pages.List.DelNoteConfirmation exposing (delNoteConfirmation)
 import Pages.List.Model exposing (Model, Msg(..), NewNoteData)
 import Pages.List.NoteCard exposing (noteCard)
-import Styleguide.Dialog exposing (closeDialog, dialog, openDialog)
+import Styleguide.Dialog exposing (closeDialog, dialog, dialogClosed, openDialog)
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Plus exposing (plusIcon)
 import Time exposing (posixToMillis)
 
 
-port addNote : String -> Cmd msg
-
-
-port getNotes : () -> Cmd msg
-
-
-port gotNotes : (Json.Decode.Value -> msg) -> Sub msg
-
-
 addNoteDialogId : String
 addNoteDialogId =
     "add-note-dialog"
+
+
+delNoteDialogId : String
+delNoteDialogId =
+    "del-note-dialog"
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -37,7 +35,16 @@ update msg model =
             ( { model | addNoteFormOpen = True }, openDialog addNoteDialogId )
 
         CloseAddNoteForm ->
-            ( { model | addNoteFormOpen = False }, closeDialog addNoteDialogId )
+            ( model, closeDialog addNoteDialogId )
+
+        DialogClosed () ->
+            ( { model | addNoteFormOpen = False, noteToDelete = Nothing }, Cmd.none )
+
+        OpenDelNoteForm note ->
+            ( { model | noteToDelete = Just note }, openDialog delNoteDialogId )
+
+        CloseDelNoteForm ->
+            ( model, closeDialog delNoteDialogId )
 
         UpdateNewNoteTitle newNoteTitle ->
             let
@@ -67,13 +74,20 @@ update msg model =
                 cleanNewNoteData =
                     { title = "", text = "" }
             in
-            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, newNoteDataEncoder model.newNoteData |> Json.Encode.encode 0 |> addNote ] )
+            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, newNoteDataEncoder model.newNoteData |> Json.Encode.encode 0 |> Backend.addNote ] )
 
         GotError message ->
             ( { model | error = Just message }, Cmd.none )
 
         GotNotes notes ->
             ( { model | notes = notes }, Cmd.none )
+
+        DelNote noteId ->
+            let
+                ( updatedModel, closeCmd ) =
+                    update CloseDelNoteForm model
+            in
+            ( updatedModel, Cmd.batch [ closeCmd, Backend.delNote noteId ] )
 
 
 newNoteDataEncoder : NewNoteData -> Json.Encode.Value
@@ -100,11 +114,27 @@ decodeNotes value =
 
 view : Model -> List (Html Msg)
 view model =
-    [ dialog
-        addNoteDialogId
-        CloseAddNoteForm
-        []
-        [ addNoteForm model.newNoteData ]
+    [ if model.addNoteFormOpen then
+        dialog
+            addNoteDialogId
+            CloseAddNoteForm
+            []
+            "Add note"
+            (addNoteForm model.newNoteData)
+
+      else
+        text ""
+    , case model.noteToDelete of
+        Just note ->
+            dialog
+                delNoteDialogId
+                CloseDelNoteForm
+                [ attribute "data-testid" "delete-note-confirmation" ]
+                "Delete note"
+                (delNoteConfirmation note)
+
+        Nothing ->
+            text ""
     , header [] [ text "Notebook" ]
     , main_ [ class "container" ] (model.notes |> List.sortWith newestFirst |> List.map noteCard)
     , errorAlert model.error
@@ -140,12 +170,16 @@ init () =
             { title = ""
             , text = ""
             }
+      , noteToDelete = Nothing
       , error = Nothing
       }
-    , getNotes ()
+    , Backend.getNotes ()
     )
 
 
 subscriptions : () -> Sub Msg
 subscriptions () =
-    gotNotes decodeNotes
+    Sub.batch
+        [ Backend.gotNotes decodeNotes
+        , dialogClosed DialogClosed
+        ]
