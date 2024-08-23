@@ -7,7 +7,8 @@ type alias Model =
     { id : String
     , note : Maybe Note
     , error : Maybe String
-    , isFormDirty: Bool
+    , isFormDirty : Bool
+    , isCopyingNote: Bool
     }
 
 
@@ -18,3 +19,4 @@ type Msg
     | UpdateNewNoteTitle String
     | UpdateNewNoteText String
     | DeleteNote Note
+    | CopyNote Note

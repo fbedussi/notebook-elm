@@ -14,6 +14,7 @@ import Pages.Single.Model exposing (Model, Msg(..))
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Back exposing (backIcon)
 import Time exposing (posixToMillis)
+import Utils exposing (getCopyNotePayload)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg, Common.Model.Msg )
@@ -69,6 +70,10 @@ update msg model =
             ( model, Cmd.none )
                 |> withCommonOp (Common.Model.OpenDelNoteForm note)
 
+        CopyNote note ->
+            ( { model | isCopyingNote = True }, getCopyNotePayload note |> Backend.addNote )
+                |> withNoCommonOp
+
 
 noteEncoder : Note -> Json.Encode.Value
 noteEncoder note =
@@ -98,6 +103,7 @@ init id =
       , note = Nothing
       , error = Nothing
       , isFormDirty = False
+      , isCopyingNote = False
       }
     , if id == "" then
         Cmd.none

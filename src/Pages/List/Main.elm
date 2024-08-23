@@ -7,15 +7,13 @@ import Html exposing (Html, button, header, main_, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import Json.Decode
-import Json.Encode
-import Model exposing (Note)
 import Pages.List.AddNoteForm exposing (addNoteForm)
-import Pages.List.Model exposing (Model, Msg(..), NewNoteData)
+import Pages.List.Model exposing (Model, Msg(..))
 import Pages.List.NoteCard exposing (noteCard)
 import Styleguide.Dialog exposing (closeDialog, dialog, dialogClosed, openDialog)
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Plus exposing (plusIcon)
-import Time exposing (posixToMillis)
+import Utils exposing (getCopyNotePayload, newestFirst)
 
 
 addNoteDialogId : String
@@ -72,7 +70,7 @@ update msg model =
                 cleanNewNoteData =
                     { title = "", text = "" }
             in
-            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, newNoteDataEncoder model.newNoteData |> Json.Encode.encode 0 |> Backend.addNote ], commonMsg )
+            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, model.newNoteData |> Backend.addNote ], commonMsg )
 
         GotError message ->
             ( { model | error = Just message }, Cmd.none )
@@ -82,13 +80,9 @@ update msg model =
             ( { model | notes = notes }, Cmd.none )
                 |> withNoCommonOp
 
-
-newNoteDataEncoder : NewNoteData -> Json.Encode.Value
-newNoteDataEncoder newNoteData =
-    Json.Encode.object
-        [ ( "title", Json.Encode.string newNoteData.title )
-        , ( "text", Json.Encode.string newNoteData.text )
-        ]
+        CopyNote note ->
+            ( model, getCopyNotePayload note |> Backend.addNote )
+                |> withNoCommonOp
 
 
 decodeNotes : Json.Decode.Value -> Msg
@@ -122,26 +116,6 @@ view model =
     , errorAlert model.error
     , button [ attribute "data-testid" "add-note-btn", class "add-note-btn", class "fab", onClick OpenAddNoteForm ] [ plusIcon ]
     ]
-
-
-newestFirst : Note -> Note -> Order
-newestFirst noteA noteB =
-    let
-        updatedAtA =
-            posixToMillis noteA.updatedAt
-
-        updatedAtB =
-            posixToMillis noteB.updatedAt
-    in
-    case compare updatedAtA updatedAtB of
-        LT ->
-            GT
-
-        EQ ->
-            EQ
-
-        GT ->
-            LT
 
 
 init : () -> ( Model, Cmd Msg )

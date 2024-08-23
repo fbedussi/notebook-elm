@@ -21,6 +21,8 @@ editNoteFormTest =
                         [ Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "note-title-input"
                         , Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "note-text-input"
                         , Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "save-note-btn"
+                        , Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "delete-note-btn"
+                        , Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "copy-note-btn"
                         ]
         , test "the submit button is disabled if the form is pristine" <|
             \_ ->

@@ -81,3 +81,27 @@ test('can delete a note', async ({ page }) => {
   // the note is not shown
   await expect(page.getByTestId('note')).not.toBeVisible()
 });
+
+test('can copy a note', async ({ page }) => {
+  // add a note
+  await page.goto('/');
+
+  await page.getByTestId('add-note-btn').click()
+  
+  const title = 'fake title'
+  const text = 'fake text'
+
+  await page.getByTestId('note-title-input').fill(title)
+  await page.getByTestId('note-text-input').fill(text)
+  await page.getByTestId('save-note-btn').click()
+
+  // Go to single note page
+  await page.getByTestId('edit-btn').click()
+  await page.waitForURL('**/note/*');
+  
+  // Copy the note
+  await page.getByTestId('copy-note-btn').click()
+  
+  // The note is saved
+  await expect(page.getByText(title + ' (copy)')).toBeVisible()
+});

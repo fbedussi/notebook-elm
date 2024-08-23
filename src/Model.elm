@@ -19,3 +19,8 @@ type alias Note =
 
 type alias Notes =
     List Note
+
+type alias NewNoteData =
+    { title : String
+    , text : String
+    }

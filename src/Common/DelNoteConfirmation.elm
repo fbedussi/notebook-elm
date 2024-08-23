@@ -10,7 +10,7 @@ import Styleguide.Button exposing (button)
 delNoteConfirmation note =
     ( [ text ("Are you sure to delete note \"" ++ note.title ++ "\"?") ]
     , [ button
-            [ onClick CloseDelNoteForm
+            [ onClick CloseDelNoteForm, attribute "data-testid" "cancel-btn"
             ]
             [ text "no, keep it" ]
       , button

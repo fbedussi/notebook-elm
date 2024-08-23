@@ -24,4 +24,10 @@ addNoteFormTest =
                     |> Query.fromHtml
                     |> Query.has
                         [ Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "delete-note-btn" ]
+        , test "it has the copy button" <|
+            \_ ->
+                noteCard mockedNote
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "copy-note-btn" ]
         ]

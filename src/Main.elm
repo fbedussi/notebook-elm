@@ -1,4 +1,4 @@
-module Main exposing (getTitle, main)
+module Main exposing (getTitle, main, view)
 
 import Backend
 import Browser
@@ -9,12 +9,13 @@ import Constants exposing (..)
 import Html exposing (..)
 import Model exposing (Note)
 import Pages.List.Main as ListPage
-import Pages.List.Model
+import Pages.List.Model exposing (Msg(..))
 import Pages.Single.Main as SinglePage
 import Pages.Single.Model
 import Router exposing (Route(..), parseUrl, performUrlChange, sendUrlChangeRequest)
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
+import Utils exposing (newestFirst)
 
 
 type alias Navigation =
@@ -175,10 +176,10 @@ withCommon commonMsg ( model, cmds ) =
     ( { model | common = commonModel }, Cmd.batch [ cmds, Cmd.map GotCommonMsg commonCmd ] )
 
 
-getRedirectCmd : Msg -> Model -> Cmd msg
-getRedirectCmd msg model =
+getGlobaleEffects : Msg -> Model -> ( Model, Cmd msg )
+getGlobaleEffects msg model =
     let
-        isSingleRoulte =
+        isSingleRoute =
             case model.navigation.route of
                 SingleRoute _ ->
                     True
@@ -198,24 +199,58 @@ getRedirectCmd msg model =
 
                 _ ->
                     False
+
+        isDeletingNoteFromSinglePage =
+            isSingleRoute && isDeletingNote
+
+        isCopyingNoteFromSinglePage =
+            model.singlePage.isCopyingNote
+
+        maybeNewNote =
+            case msg of
+                GotListMsg listMsg ->
+                    case listMsg of
+                        GotNotes notes ->
+                            notes |> List.sortWith newestFirst |> List.head
+
+                        _ ->
+                            Nothing
+
+                _ ->
+                    Nothing
+
+        newNoteId =
+            case maybeNewNote of
+                Just note ->
+                    note.id
+
+                Nothing ->
+                    ""
     in
-    if isSingleRoulte && isDeletingNote then
-        sendUrlChangeRequest model.navigation.basePath
+    if isDeletingNoteFromSinglePage then
+        ( model, sendUrlChangeRequest model.navigation.basePath )
+
+    else if isCopyingNoteFromSinglePage && (newNoteId /= "") then
+        let
+            singleModel =
+                model.singlePage
+        in
+        ( { model | singlePage = { singleModel | isCopyingNote = False } }, sendUrlChangeRequest (model.navigation.basePath ++ "note/" ++ newNoteId) )
 
     else
-        Cmd.none
+        ( model, Cmd.none )
 
 
-withRedirect : (Msg -> Model -> ( Model, Cmd Msg )) -> Msg -> Model -> ( Model, Cmd Msg )
-withRedirect updateFn msg model =
+withGlobalEffects : (Msg -> Model -> ( Model, Cmd Msg )) -> Msg -> Model -> ( Model, Cmd Msg )
+withGlobalEffects updateFn msg model =
     let
         ( updatedModel, cmd ) =
             updateFn msg model
 
-        redirectCmd =
-            getRedirectCmd msg model
+        ( modelAfterEffect, effectCmd ) =
+            getGlobaleEffects msg updatedModel
     in
-    ( updatedModel, Cmd.batch [ cmd, redirectCmd ] )
+    ( modelAfterEffect, Cmd.batch [ cmd, effectCmd ] )
 
 
 type alias Flags =
@@ -227,7 +262,7 @@ main =
     Browser.application
         { init = init
         , view = view
-        , update = withRedirect update
+        , update = withGlobalEffects update
         , subscriptions = subscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = ChangedUrl

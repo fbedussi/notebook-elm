@@ -1,11 +1,12 @@
 module Pages.List.NoteCard exposing (..)
 
-import Html exposing (Html, a, article, footer, header, main_, text)
-import Html.Attributes exposing (attribute, class, href)
+import Html exposing (Html, a, article, div, footer, header, main_, text)
+import Html.Attributes exposing (attribute, class, href, style)
 import Html.Events exposing (onClick)
 import Model exposing (Note)
 import Pages.List.Model exposing (Msg(..))
 import Styleguide.Button exposing (button)
+import Styleguide.Icons.Copy exposing (copyIcon)
 import Styleguide.Icons.Delete exposing (deleteIcon)
 import Styleguide.Icons.Edit exposing (editIcon)
 
@@ -22,7 +23,11 @@ noteCard note =
             [ text note.text ]
         , footer
             []
-            [ button [ attribute "data-testid" "delete-note-btn", onClick (DeleteNote note), class "outline", class "secondary" ] [ deleteIcon ]
+            [ div
+                [ style "display" "flex", style "gap" "1rem" ]
+                [ button [ attribute "data-testid" "delete-note-btn", onClick (DeleteNote note), class "outline", class "secondary" ] [ deleteIcon ]
+                , button [ attribute "data-testid" "copy-note-btn", onClick (CopyNote note), class "outline" ] [ copyIcon ]
+                ]
             , a [ href ("./note/" ++ note.id), class "no-style", attribute "data-testid" "edit-btn", attribute "role" "button" ] [ editIcon ]
             ]
         ]
