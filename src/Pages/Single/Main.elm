@@ -1,6 +1,7 @@
 module Pages.Single.Main exposing (init, subscriptions, update, view)
 
 import Backend exposing (getNote, gotNote)
+import Common.Model exposing (withCommonOp, withNoCommonOp)
 import Constants exposing (..)
 import Decoders exposing (noteDecoder)
 import Html exposing (Html, a, header, main_)
@@ -15,22 +16,26 @@ import Styleguide.Icons.Back exposing (backIcon)
 import Time exposing (posixToMillis)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, Common.Model.Msg )
 update msg model =
     case msg of
         GotNote note ->
             ( { model | note = Just note }, Cmd.none )
+                |> withNoCommonOp
 
         GotError errorMsg ->
             ( { model | error = Just errorMsg }, Cmd.none )
+                |> withNoCommonOp
 
         SaveNote ->
             case model.note of
                 Just note ->
                     ( { model | isFormDirty = False }, Backend.saveNote (noteEncoder note) )
+                        |> withNoCommonOp
 
                 Nothing ->
                     ( model, Cmd.none )
+                        |> withNoCommonOp
 
         UpdateNewNoteTitle newNoteTitle ->
             case model.note of
@@ -40,9 +45,11 @@ update msg model =
                             { prevNoteData | title = newNoteTitle }
                     in
                     ( { model | note = Just updatedNoteData, isFormDirty = True }, Cmd.none )
+                        |> withNoCommonOp
 
                 Nothing ->
                     ( model, Cmd.none )
+                        |> withNoCommonOp
 
         UpdateNewNoteText newNoteText ->
             case model.note of
@@ -52,9 +59,15 @@ update msg model =
                             { prevNoteData | text = newNoteText }
                     in
                     ( { model | note = Just updatedNoteData, isFormDirty = True }, Cmd.none )
+                        |> withNoCommonOp
 
                 Nothing ->
                     ( model, Cmd.none )
+                        |> withNoCommonOp
+
+        DeleteNote note ->
+            ( model, Cmd.none )
+                |> withCommonOp (Common.Model.OpenDelNoteForm note)
 
 
 noteEncoder : Note -> Json.Encode.Value

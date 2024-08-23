@@ -1,6 +1,7 @@
 module Pages.List.Main exposing (init, subscriptions, update, view)
 
-import Backend exposing (delNote)
+import Backend
+import Common.Model exposing (withCommonOp, withNoCommonOp)
 import Decoders exposing (notesDecoder)
 import Html exposing (Html, button, header, main_, text)
 import Html.Attributes exposing (attribute, class)
@@ -9,7 +10,6 @@ import Json.Decode
 import Json.Encode
 import Model exposing (Note)
 import Pages.List.AddNoteForm exposing (addNoteForm)
-import Pages.List.DelNoteConfirmation exposing (delNoteConfirmation)
 import Pages.List.Model exposing (Model, Msg(..), NewNoteData)
 import Pages.List.NoteCard exposing (noteCard)
 import Styleguide.Dialog exposing (closeDialog, dialog, dialogClosed, openDialog)
@@ -23,28 +23,24 @@ addNoteDialogId =
     "add-note-dialog"
 
 
-delNoteDialogId : String
-delNoteDialogId =
-    "del-note-dialog"
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Cmd Msg, Common.Model.Msg )
 update msg model =
     case msg of
         OpenAddNoteForm ->
             ( { model | addNoteFormOpen = True }, openDialog addNoteDialogId )
+                |> withNoCommonOp
 
         CloseAddNoteForm ->
             ( model, closeDialog addNoteDialogId )
+                |> withNoCommonOp
 
         DialogClosed () ->
-            ( { model | addNoteFormOpen = False, noteToDelete = Nothing }, Cmd.none )
+            ( { model | addNoteFormOpen = False }, Cmd.none )
+                |> withNoCommonOp
 
-        OpenDelNoteForm note ->
-            ( { model | noteToDelete = Just note }, openDialog delNoteDialogId )
-
-        CloseDelNoteForm ->
-            ( model, closeDialog delNoteDialogId )
+        DeleteNote note ->
+            ( model, Cmd.none )
+                |> withCommonOp (Common.Model.OpenDelNoteForm note)
 
         UpdateNewNoteTitle newNoteTitle ->
             let
@@ -55,6 +51,7 @@ update msg model =
                     { prevNewNodeData | title = newNoteTitle }
             in
             ( { model | newNoteData = updatedNewNodeData }, Cmd.none )
+                |> withNoCommonOp
 
         UpdateNewNoteText newNoteText ->
             let
@@ -65,29 +62,25 @@ update msg model =
                     { prevNewNodeData | text = newNoteText }
             in
             ( { model | newNoteData = updatedNewNodeData }, Cmd.none )
+                |> withNoCommonOp
 
         AddNote ->
             let
-                ( updatedModel, closeFormCmd ) =
+                ( updatedModel, closeFormCmd, commonMsg ) =
                     update CloseAddNoteForm model
 
                 cleanNewNoteData =
                     { title = "", text = "" }
             in
-            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, newNoteDataEncoder model.newNoteData |> Json.Encode.encode 0 |> Backend.addNote ] )
+            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, newNoteDataEncoder model.newNoteData |> Json.Encode.encode 0 |> Backend.addNote ], commonMsg )
 
         GotError message ->
             ( { model | error = Just message }, Cmd.none )
+                |> withNoCommonOp
 
         GotNotes notes ->
             ( { model | notes = notes }, Cmd.none )
-
-        DelNote noteId ->
-            let
-                ( updatedModel, closeCmd ) =
-                    update CloseDelNoteForm model
-            in
-            ( updatedModel, Cmd.batch [ closeCmd, Backend.delNote noteId ] )
+                |> withNoCommonOp
 
 
 newNoteDataEncoder : NewNoteData -> Json.Encode.Value
@@ -124,17 +117,6 @@ view model =
 
       else
         text ""
-    , case model.noteToDelete of
-        Just note ->
-            dialog
-                delNoteDialogId
-                CloseDelNoteForm
-                [ attribute "data-testid" "delete-note-confirmation" ]
-                "Delete note"
-                (delNoteConfirmation note)
-
-        Nothing ->
-            text ""
     , header [] [ text "Notebook" ]
     , main_ [ class "container" ] (model.notes |> List.sortWith newestFirst |> List.map noteCard)
     , errorAlert model.error

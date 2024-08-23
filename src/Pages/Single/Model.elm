@@ -17,3 +17,4 @@ type Msg
     | GotError String
     | UpdateNewNoteTitle String
     | UpdateNewNoteText String
+    | DeleteNote Note

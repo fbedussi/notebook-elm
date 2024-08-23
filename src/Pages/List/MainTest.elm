@@ -66,7 +66,7 @@ listPageTest =
                     dirtyNewNoteData =
                         { title = "old title", text = "old text" }
 
-                    ( updatedModel, _ ) =
+                    ( updatedModel, _, _ ) =
                         Pages.List.Main.update AddNote { model | newNoteData = dirtyNewNoteData }
 
                     newNoteData =

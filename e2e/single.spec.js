@@ -13,15 +13,16 @@ test('single note page', async ({ page }) => {
   await page.getByTestId('note-text-input').fill(text)
   await page.getByTestId('save-note-btn').click()
 
-  await page.getByTestId('edit-btn').click()
-  
   // Go to single note page
+  await page.getByTestId('edit-btn').click()
   await page.waitForURL('**/note/*');
   
   // The note is open in edit mode
   await expect(page.getByTestId('note-title-input')).toBeVisible()
   await expect(page.getByTestId('note-text-input')).toBeVisible()
   await expect(page.getByTestId('save-note-btn')).toBeVisible()
+  await expect(page.getByTestId('note-title-input')).toHaveValue(title)
+  await expect(page.getByTestId('note-text-input')).toHaveValue(text)
 
   // When the form is pristine the save button is disabled
   await expect(page.getByTestId('save-note-btn')).toBeDisabled()
@@ -45,4 +46,38 @@ test('single note page', async ({ page }) => {
   // Go back to the list page
   await page.getByTestId('back-btn').click()
   await page.waitForURL('**/');
+});
+
+
+test('can delete a note', async ({ page }) => {
+  // add a note
+  await page.goto('/');
+
+  await page.getByTestId('add-note-btn').click()
+  
+  const title = 'fake title'
+  const text = 'fake text'
+
+  await page.getByTestId('note-title-input').fill(title)
+  await page.getByTestId('note-text-input').fill(text)
+  await page.getByTestId('save-note-btn').click()
+
+  // Go to single note page
+  await page.getByTestId('edit-btn').click()
+  await page.waitForURL('**/note/*');
+  
+  // The note is visible
+  await expect(page.getByTestId('note-title-input')).toHaveValue(title)
+  await expect(page.getByTestId('note-text-input')).toHaveValue(text)
+
+  // Delete the note
+  await page.getByTestId('delete-note-btn').click()
+  await expect(page.getByTestId('delete-note-confirmation')).toBeVisible()
+  await page.getByTestId('ok-btn').click()
+
+  // The user is redirect to the home
+  await page.waitForURL('**/');
+
+  // the note is not shown
+  await expect(page.getByTestId('note')).not.toBeVisible()
 });

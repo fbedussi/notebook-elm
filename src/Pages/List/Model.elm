@@ -22,11 +22,9 @@ type Msg
     = OpenAddNoteForm
     | CloseAddNoteForm
     | DialogClosed ()
-    | OpenDelNoteForm Note
-    | CloseDelNoteForm
+    | DeleteNote Note
     | UpdateNewNoteTitle String
     | UpdateNewNoteText String
     | AddNote
     | GotNotes Notes
     | GotError String
-    | DelNote Id

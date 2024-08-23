@@ -1,7 +1,10 @@
 module Main exposing (getTitle, main)
 
+import Backend
 import Browser
 import Browser.Navigation as Nav
+import Common.Main
+import Common.Model
 import Constants exposing (..)
 import Html exposing (..)
 import Model exposing (Note)
@@ -12,23 +15,31 @@ import Pages.Single.Model
 import Router exposing (Route(..), parseUrl, performUrlChange, sendUrlChangeRequest)
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
-import Backend
+
+
+type alias Navigation =
+    { key : Nav.Key
+    , route : Route
+    , basePath : String
+    }
+
 
 type alias Model =
-    { navigation :
-        { key : Nav.Key
-        , route : Route
-        , basePath : String
-        }
+    { navigation : Navigation
     , listPage : Pages.List.Model.Model
     , singlePage : Pages.Single.Model.Model
+    , common : Common.Model.Model
     }
 
 
 view : Model -> Browser.Document Msg
 view model =
     let
-        content =
+        commonContent =
+            Common.Main.view model.common
+                |> List.map (Html.map GotCommonMsg)
+
+        pageContent =
             case model.navigation.route of
                 ListRoute ->
                     ListPage.view model.listPage
@@ -44,6 +55,9 @@ view model =
 
                 NotFoundRoute ->
                     [ text "Sorry, I did't find this page" ]
+
+        content =
+            commonContent ++ pageContent
     in
     { title =
         getTitle model.navigation.route model.singlePage.note
@@ -77,6 +91,7 @@ type Msg
     | ChangedUrl Url
     | GotListMsg Pages.List.Model.Msg
     | GotSingleMsg Pages.Single.Model.Msg
+    | GotCommonMsg Common.Model.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -118,10 +133,11 @@ update msg model =
             case model.navigation.route of
                 ListRoute ->
                     let
-                        ( listMode, listCmd ) =
+                        ( listModel, listCmd, commonMsg ) =
                             ListPage.update listMsg model.listPage
                     in
-                    ( { model | listPage = listMode }, Cmd.map GotListMsg listCmd )
+                    ( { model | listPage = listModel }, Cmd.map GotListMsg listCmd )
+                        |> withCommon commonMsg
 
                 _ ->
                     ( model, Cmd.none )
@@ -133,13 +149,73 @@ update msg model =
                         oldSingleModel =
                             model.singlePage
 
-                        ( singleModel, singleCmd ) =
+                        ( singleModel, singleCmd, commonMsg ) =
                             SinglePage.update singleMsg { oldSingleModel | id = id }
                     in
                     ( { model | singlePage = singleModel }, Cmd.map GotSingleMsg singleCmd )
+                        |> withCommon commonMsg
 
                 _ ->
                     ( model, Cmd.none )
+
+        GotCommonMsg commonMsg ->
+            let
+                ( commonModel, commonCmd ) =
+                    Common.Main.update commonMsg model.common
+            in
+            ( { model | common = commonModel }, Cmd.batch [ Cmd.map GotCommonMsg commonCmd ] )
+
+
+withCommon : Common.Model.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+withCommon commonMsg ( model, cmds ) =
+    let
+        ( commonModel, commonCmd ) =
+            Common.Main.update commonMsg model.common
+    in
+    ( { model | common = commonModel }, Cmd.batch [ cmds, Cmd.map GotCommonMsg commonCmd ] )
+
+
+getRedirectCmd : Msg -> Model -> Cmd msg
+getRedirectCmd msg model =
+    let
+        isSingleRoulte =
+            case model.navigation.route of
+                SingleRoute _ ->
+                    True
+
+                _ ->
+                    False
+
+        isDeletingNote =
+            case msg of
+                GotCommonMsg commonMsg ->
+                    case commonMsg of
+                        Common.Model.DelNote _ ->
+                            True
+
+                        _ ->
+                            False
+
+                _ ->
+                    False
+    in
+    if isSingleRoulte && isDeletingNote then
+        sendUrlChangeRequest model.navigation.basePath
+
+    else
+        Cmd.none
+
+
+withRedirect : (Msg -> Model -> ( Model, Cmd Msg )) -> Msg -> Model -> ( Model, Cmd Msg )
+withRedirect updateFn msg model =
+    let
+        ( updatedModel, cmd ) =
+            updateFn msg model
+
+        redirectCmd =
+            getRedirectCmd msg model
+    in
+    ( updatedModel, Cmd.batch [ cmd, redirectCmd ] )
 
 
 type alias Flags =
@@ -151,7 +227,7 @@ main =
     Browser.application
         { init = init
         , view = view
-        , update = update
+        , update = withRedirect update
         , subscriptions = subscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = ChangedUrl
@@ -177,6 +253,9 @@ init { basePath } url navigationKey =
 
         ( singlePageModel, singlePageCmd ) =
             SinglePage.init selectedNoteId
+
+        commonModel =
+            Common.Main.init
     in
     ( { navigation =
             { key = navigationKey
@@ -185,6 +264,7 @@ init { basePath } url navigationKey =
             }
       , listPage = listPageModel
       , singlePage = singlePageModel
+      , common = commonModel
       }
     , Cmd.batch [ singlePageCmd |> Cmd.map GotSingleMsg, listPageCmd |> Cmd.map GotListMsg ]
     )

@@ -1046,11 +1046,11 @@ button:is([aria-current]:not([aria-current=false])):focus,
   --pico-box-shadow: var(--pico-button-hover-box-shadow, 0 0 0 rgba(0, 0, 0, 0)), 0 0 0 var(--pico-outline-width) var(--pico-primary-focus);
 }
 
-[type=submit],
+/* [type=submit],
 [type=reset],
 [type=button] {
   margin-bottom: var(--pico-spacing);
-}
+} */
 
 :is(button, [type=submit], [type=button], [role=button]).secondary,
 [type=reset],

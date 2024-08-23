@@ -1,9 +1,9 @@
-module Pages.List.DelNoteConfirmation exposing (..)
+module Common.DelNoteConfirmation exposing (..)
 
+import Common.Model exposing (Msg(..))
 import Html exposing (text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
-import Pages.List.Model exposing (Msg(..))
 import Styleguide.Button exposing (button)
 
 

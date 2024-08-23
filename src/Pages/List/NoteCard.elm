@@ -1,7 +1,7 @@
 module Pages.List.NoteCard exposing (..)
 
 import Html exposing (Html, a, article, footer, header, main_, text)
-import Html.Attributes exposing (attribute, class, href, rel)
+import Html.Attributes exposing (attribute, class, href)
 import Html.Events exposing (onClick)
 import Model exposing (Note)
 import Pages.List.Model exposing (Msg(..))
@@ -22,7 +22,7 @@ noteCard note =
             [ text note.text ]
         , footer
             []
-            [ button [ attribute "data-testid" "delete-note-btn", onClick (OpenDelNoteForm note), class "outline", class "secondary" ] [ deleteIcon ]
+            [ button [ attribute "data-testid" "delete-note-btn", onClick (DeleteNote note), class "outline", class "secondary" ] [ deleteIcon ]
             , a [ href ("./note/" ++ note.id), class "no-style", attribute "data-testid" "edit-btn", attribute "role" "button" ] [ editIcon ]
             ]
         ]
