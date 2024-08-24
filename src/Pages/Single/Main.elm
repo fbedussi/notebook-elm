@@ -17,12 +17,17 @@ import Time exposing (posixToMillis)
 import Utils exposing (getCopyNotePayload)
 
 
-update : Msg -> Model -> ( Model, Cmd Msg, Common.Model.Msg )
-update msg model =
+update : (Id -> Cmd Msg) -> Msg -> Model -> ( Model, Cmd Msg, Common.Model.Msg )
+update redirectToSinglePage msg model =
     case msg of
         GotNote note ->
-            ( { model | note = Just note }, Cmd.none )
-                |> withNoCommonOp
+            if model.isCopyingNote then
+                ( { model | isCopyingNote = False }, redirectToSinglePage note.id )
+                    |> withNoCommonOp
+
+            else
+                ( { model | note = Just note }, Cmd.none )
+                    |> withNoCommonOp
 
         GotError errorMsg ->
             ( { model | error = Just errorMsg }, Cmd.none )
@@ -71,7 +76,7 @@ update msg model =
                 |> withCommonOp (Common.Model.OpenDelNoteForm note)
 
         CopyNote note ->
-            ( { model | isCopyingNote = True }, getCopyNotePayload note |> Backend.addNote )
+            ( { model | isCopyingNote = True }, getCopyNotePayload note |> Backend.addNewNote )
                 |> withNoCommonOp
 
 

@@ -17,15 +17,17 @@ elmApp.ports.getNotes.subscribe(() => {
 
 elmApp.ports.addNote.subscribe(newNoteData => {
   const timestamp = Date.now()
-  notes.push({
+  const newNote = {
     ...JSON.parse(newNoteData),
     id: crypto.randomUUID(),
     createdAt: timestamp,
     updatedAt: timestamp,
     version: 1,
-  })
+  }
+  notes.push(newNote)
   window.localStorage.setItem('notes', JSON.stringify(notes))
   elmApp.ports.gotNotes.send(notes)
+  elmApp.ports.gotNote.send(newNote)
 })
 
 elmApp.ports.getNote.subscribe(noteId => {

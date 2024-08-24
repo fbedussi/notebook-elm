@@ -1,4 +1,4 @@
-port module Backend exposing (addNote, delNote, getNote, getNotes, gotNote, gotNotes, saveNote)
+port module Backend exposing (addNewNote, delNote, getNote, getNotes, gotNote, gotNotes, saveNote)
 
 import Encoders exposing (newNoteDataEncoder)
 import Json.Decode exposing (Value)
@@ -6,11 +6,11 @@ import Json.Encode
 import Model exposing (Id)
 
 
-port addNotePort : String -> Cmd msg
+port addNote : String -> Cmd msg
 
 
-addNote newNotePayload =
-    newNotePayload |> newNoteDataEncoder |> Json.Encode.encode 0 |> addNotePort
+addNewNote newNotePayload =
+    newNotePayload |> newNoteDataEncoder |> Json.Encode.encode 0 |> addNote
 
 
 port getNotes : () -> Cmd msg

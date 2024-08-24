@@ -15,7 +15,6 @@ import Pages.Single.Model
 import Router exposing (Route(..), parseUrl, performUrlChange, sendUrlChangeRequest)
 import Url exposing (Url)
 import Url.Parser exposing ((</>))
-import Utils exposing (newestFirst)
 
 
 type alias Navigation =
@@ -150,8 +149,11 @@ update msg model =
                         oldSingleModel =
                             model.singlePage
 
+                        redirectToSinglePage noteId =
+                            sendUrlChangeRequest (model.navigation.basePath ++ "note/" ++ noteId)
+
                         ( singleModel, singleCmd, commonMsg ) =
-                            SinglePage.update singleMsg { oldSingleModel | id = id }
+                            SinglePage.update redirectToSinglePage singleMsg { oldSingleModel | id = id }
                     in
                     ( { model | singlePage = singleModel }, Cmd.map GotSingleMsg singleCmd )
                         |> withCommon commonMsg
@@ -162,7 +164,7 @@ update msg model =
         GotCommonMsg commonMsg ->
             let
                 ( commonModel, commonCmd ) =
-                    Common.Main.update commonMsg model.common
+                    Common.Main.update (redirectToListPage model) commonMsg model.common
             in
             ( { model | common = commonModel }, Cmd.batch [ Cmd.map GotCommonMsg commonCmd ] )
 
@@ -171,86 +173,26 @@ withCommon : Common.Model.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 withCommon commonMsg ( model, cmds ) =
     let
         ( commonModel, commonCmd ) =
-            Common.Main.update commonMsg model.common
+            Common.Main.update (redirectToListPage model) commonMsg model.common
     in
     ( { model | common = commonModel }, Cmd.batch [ cmds, Cmd.map GotCommonMsg commonCmd ] )
 
 
-getGlobaleEffects : Msg -> Model -> ( Model, Cmd msg )
-getGlobaleEffects msg model =
+redirectToListPage model () =
     let
-        isSingleRoute =
+        isListRoute =
             case model.navigation.route of
-                SingleRoute _ ->
+                ListRoute ->
                     True
 
                 _ ->
                     False
-
-        isDeletingNote =
-            case msg of
-                GotCommonMsg commonMsg ->
-                    case commonMsg of
-                        Common.Model.DelNote _ ->
-                            True
-
-                        _ ->
-                            False
-
-                _ ->
-                    False
-
-        isDeletingNoteFromSinglePage =
-            isSingleRoute && isDeletingNote
-
-        isCopyingNoteFromSinglePage =
-            model.singlePage.isCopyingNote
-
-        maybeNewNote =
-            case msg of
-                GotListMsg listMsg ->
-                    case listMsg of
-                        GotNotes notes ->
-                            notes |> List.sortWith newestFirst |> List.head
-
-                        _ ->
-                            Nothing
-
-                _ ->
-                    Nothing
-
-        newNoteId =
-            case maybeNewNote of
-                Just note ->
-                    note.id
-
-                Nothing ->
-                    ""
     in
-    if isDeletingNoteFromSinglePage then
-        ( model, sendUrlChangeRequest model.navigation.basePath )
-
-    else if isCopyingNoteFromSinglePage && (newNoteId /= "") then
-        let
-            singleModel =
-                model.singlePage
-        in
-        ( { model | singlePage = { singleModel | isCopyingNote = False } }, sendUrlChangeRequest (model.navigation.basePath ++ "note/" ++ newNoteId) )
+    if not isListRoute then
+        sendUrlChangeRequest model.navigation.basePath
 
     else
-        ( model, Cmd.none )
-
-
-withGlobalEffects : (Msg -> Model -> ( Model, Cmd Msg )) -> Msg -> Model -> ( Model, Cmd Msg )
-withGlobalEffects updateFn msg model =
-    let
-        ( updatedModel, cmd ) =
-            updateFn msg model
-
-        ( modelAfterEffect, effectCmd ) =
-            getGlobaleEffects msg updatedModel
-    in
-    ( modelAfterEffect, Cmd.batch [ cmd, effectCmd ] )
+        Cmd.none
 
 
 type alias Flags =
@@ -262,7 +204,7 @@ main =
     Browser.application
         { init = init
         , view = view
-        , update = withGlobalEffects update
+        , update = update
         , subscriptions = subscriptions
         , onUrlRequest = ClickedLink
         , onUrlChange = ChangedUrl

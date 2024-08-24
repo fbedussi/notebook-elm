@@ -19,8 +19,8 @@ delNoteDialogId =
     "del-note-dialog"
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : (() -> Cmd Msg) -> Msg -> Model -> ( Model, Cmd Msg )
+update redirectToListPage msg model =
     case msg of
         OpenDelNoteForm noteToDelete ->
             ( { model | noteToDelete = Just noteToDelete }, openDialog delNoteDialogId )
@@ -28,9 +28,9 @@ update msg model =
         DelNote noteId ->
             let
                 ( updatedModel, closeCmd ) =
-                    update CloseDelNoteForm model
+                    update redirectToListPage CloseDelNoteForm model
             in
-            ( updatedModel, Cmd.batch [ closeCmd, Backend.delNote noteId ] )
+            ( updatedModel, Cmd.batch [ Backend.delNote noteId, redirectToListPage (), closeCmd ] )
 
         CloseDelNoteForm ->
             ( model, closeDialog delNoteDialogId )

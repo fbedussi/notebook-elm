@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
 
-test('single note page', async ({ page }) => {
+test('Add & edit a note, back button', async ({ page }) => {
   await page.goto('/');
 
   await page.getByTestId('add-note-btn').click()
@@ -40,8 +40,8 @@ test('single note page', async ({ page }) => {
   await expect(page.getByTestId('save-note-btn')).toBeDisabled()
 
   // The modifications are persisted
-  // await page.reload()
-  // await expect(page.getByTestId('note-title-input')).toHaveValue(title_edited)
+  await page.reload()
+  await expect(page.getByTestId('note-title-input')).toHaveValue(title_edited)
 
   // Go back to the list page
   await page.getByTestId('back-btn').click()
@@ -103,5 +103,5 @@ test('can copy a note', async ({ page }) => {
   await page.getByTestId('copy-note-btn').click()
   
   // The note is saved
-  await expect(page.getByText(title + ' (copy)')).toBeVisible()
+  await expect(page.getByTestId('note-title-input')).toHaveValue(title + ' (copy)')
 });

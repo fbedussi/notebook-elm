@@ -70,7 +70,7 @@ update msg model =
                 cleanNewNoteData =
                     { title = "", text = "" }
             in
-            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, model.newNoteData |> Backend.addNote ], commonMsg )
+            ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, model.newNoteData |> Backend.addNewNote ], commonMsg )
 
         GotError message ->
             ( { model | error = Just message }, Cmd.none )
@@ -81,7 +81,7 @@ update msg model =
                 |> withNoCommonOp
 
         CopyNote note ->
-            ( model, getCopyNotePayload note |> Backend.addNote )
+            ( model, getCopyNotePayload note |> Backend.addNewNote )
                 |> withNoCommonOp
 
 
