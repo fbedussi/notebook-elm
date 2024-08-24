@@ -1,4 +1,5 @@
 //@ts-check
+import {debug} from 'console'
 import { initializeApp } from 'firebase/app'
 import {
   browserLocalPersistence,
@@ -19,7 +20,12 @@ import {
   deleteDoc,
   updateDoc,
 } from 'firebase/firestore'
-import { getUserId } from './auth.js'
+
+const USER_ID = 'userId'
+
+export const getUserId = () => {
+  return window.localStorage.getItem(USER_ID)
+}
 
 /**
  * @typedef {Object} AddNotePayload
@@ -33,12 +39,12 @@ import { getUserId } from './auth.js'
  */
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyB-iin2A3RiV652mi3H1Y0PN-ErlL6HKY0',
-  authDomain: 'notebook-82ddb.firebaseapp.com',
-  projectId: 'notebook-82ddb',
-  storageBucket: 'notebook-82ddb.appspot.com',
-  messagingSenderId: '486346914973',
-  appId: '1:486346914973:web:98d959ccc81eca0acc6874',
+  apiKey: "AIzaSyBenlzLRgjVQHnt4uQwqMGE1O7q3mcKhMo",
+  authDomain: "notebook-elm.firebaseapp.com",
+  projectId: "notebook-elm",
+  storageBucket: "notebook-elm.appspot.com",
+  messagingSenderId: "1057896746277",
+  appId: "1:1057896746277:web:fb294ac1340bb5a4df9ecc"
 }
 
 const app = initializeApp(firebaseConfig)

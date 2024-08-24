@@ -108,7 +108,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         LoggedIn userId ->
-            ( { model | userId = userId }, sendUrlChangeRequest "" )
+            let
+                ( _, listPageCmd ) =
+                    ListPage.init ()
+            in
+            ( { model | userId = userId }
+            , Cmd.batch
+                [ sendUrlChangeRequest ""
+                , listPageCmd |> Cmd.map GotListMsg
+                ]
+            )
 
         ClickedLink (Browser.Internal url) ->
             ( model, Url.toString url |> sendUrlChangeRequest )
@@ -290,8 +299,16 @@ init { basePath, userId } url navigationKey =
 
           else
             Cmd.none
-        , singlePageCmd |> Cmd.map GotSingleMsg
-        , listPageCmd |> Cmd.map GotListMsg
+        , if notLoggedIn then
+            Cmd.none
+
+          else
+            singlePageCmd |> Cmd.map GotSingleMsg
+        , if notLoggedIn then
+            Cmd.none
+
+          else
+            listPageCmd |> Cmd.map GotListMsg
         ]
     )
 

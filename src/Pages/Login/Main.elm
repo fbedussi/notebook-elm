@@ -27,8 +27,29 @@ view model =
     [ main_ [ class "container" ]
         [ form
             [ onSubmit Login ]
-            [ textBox { labelAttributes = [ attribute "data-testid" "username-input", onInput UpdateUsername ], inputAttributes = [ value model.username ] } "Username"
-            , textBox { labelAttributes = [ attribute "data-testid" "password-input", onInput UpdatePassword ], inputAttributes = [ value model.password, type_ "password" ] } "Password"
+            [ textBox
+                { labelAttributes =
+                    [ attribute "autocomplete" "username"
+                    , onInput UpdateUsername
+                    ]
+                , inputAttributes =
+                    [ value model.username
+                    , attribute "data-testid" "username-input"
+                    ]
+                }
+                "Username"
+            , textBox
+                { labelAttributes =
+                    [ attribute "data-testid" "password-input"
+                    , onInput UpdatePassword
+                    ]
+                , inputAttributes =
+                    [ attribute "autocomplete" "current-password"
+                    , value model.password
+                    , type_ "password"
+                    ]
+                }
+                "Password"
             , button [ type_ "submit", attribute "data-testid" "login-btn" ] [ loginIcon ]
             ]
         ]

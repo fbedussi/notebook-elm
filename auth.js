@@ -18,11 +18,12 @@ export const getUserId = () => {
  * 
  * @param {string} email 
  * @param {string} password 
- * @returns 
+ * @returns  {Promise<string>}
  */
 export const authenticate = (email, password) => {
   return loginBe({ email, password }).then(res => {
     setUserId(res.id)
+    return res.id
   })
 }
 

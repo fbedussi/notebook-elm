@@ -1,16 +1,20 @@
 {
+  "type": "module",
   "scripts": {
     "build": "elm make src/Main.elm --optimize --output=build/app.js",
     "test": "npx elm-test \"src/**/*Test.elm\" --watch",
     "test:ci": "npx elm-test \"src/**/*Test.elm\"",
-    "start": "npx elm-live src/Main.elm --pushstate --hot --proxy-prefix /notebook-elm --proxy-host http://localhost:8000 -- --output=build/app.js",
+    "start": "npm run buildjs && elm-live src/Main.elm --pushstate --hot --proxy-prefix /notebook-elm --proxy-host http://localhost:8000 -- --output=build/app.js",
     "start:debug": "./node_modules/.bin/elm-live src/Main.elm --pushstate --hot -- --output=build/app.js --debug",
     "e2e": "npx playwright test",
     "e2e:ui": "npx playwright test --ui",
-    "e2e:debug": "npx playwright test --debug"
+    "e2e:debug": "npx playwright test --debug",
+    "buildjs": "rollup -c rollup.config.js",
+    "buildjs:watch": "rollup -c rollup.config.js --watch"
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/node": "^22.2.0",
     "elm-live": "^4.0.2",
     "elm-test": "^0.19.1-revision12"

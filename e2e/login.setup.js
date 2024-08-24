@@ -9,12 +9,12 @@ setup('authenticate', async ({ page }) => {
   await page.waitForURL('**/login');
 
   // Login
-  await page.getByTestId('username-input').fill('test');
-  await page.getByTestId('password-input').fill('test');
+  await page.getByTestId('username-input').fill('test@test.com');
+  await page.getByTestId('password-input').fill('testtest');
   await page.getByTestId('login-btn').click();
   
   // User is redirected to the home
-  await page.waitForURL('**/');
+  await page.waitForURL('**/notebook-elm/');
 
   await page.context().storageState({ path: authFile });
 });
