@@ -3,15 +3,37 @@ module Common.Main exposing (..)
 import Backend
 import Common.DelNoteConfirmation exposing (delNoteConfirmation)
 import Common.Model exposing (Model, Msg(..))
-import Html exposing (Html, text)
-import Html.Attributes exposing (attribute)
+import Html exposing (Html, a, header, text)
+import Html.Attributes exposing (attribute, class, href)
+import Router exposing (Route(..))
 import Styleguide.Dialog exposing (closeDialog, dialog, openDialog)
+import Styleguide.Icons.Back exposing (backIcon)
 
 
 init : Model
 init =
     { noteToDelete = Nothing
+    , showBackButton = False
     }
+
+
+setShowBackButton route model =
+    let
+        showBackButton =
+            case route of
+                LoginRoute ->
+                    False
+
+                SingleRoute _ ->
+                    True
+
+                ListRoute ->
+                    False
+
+                NotFoundRoute ->
+                    False
+    in
+    { model | showBackButton = showBackButton }
 
 
 delNoteDialogId : String
@@ -44,6 +66,14 @@ update redirectToListPage msg model =
 
 view : Model -> List (Html Msg)
 view model =
+    let
+        backButton =
+            if model.showBackButton then
+                a [ href "./", attribute "data-testid" "back-btn", class "no-style" ] [ backIcon ]
+
+            else
+                text ""
+    in
     [ case model.noteToDelete of
         Just note ->
             dialog
@@ -55,4 +85,8 @@ view model =
 
         Nothing ->
             text ""
+    , header []
+        [ backButton
+        , text "Notebook"
+        ]
     ]

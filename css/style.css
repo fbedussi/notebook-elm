@@ -106,6 +106,8 @@ body>header {
   padding-left: 1rem;
   padding-right: 1rem;
   color: var(--pico-primary-inverse);
+  display: flex;
+  gap: 1rem;
 }
 
 .note-card {

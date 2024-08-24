@@ -111,7 +111,6 @@ view model =
 
       else
         text ""
-    , header [] [ text "Notebook" ]
     , main_ [ class "container" ] (model.notes |> List.sortWith newestFirst |> List.map noteCard)
     , errorAlert model.error
     , button [ attribute "data-testid" "add-note-btn", class "add-note-btn", class "fab", onClick OpenAddNoteForm ] [ plusIcon ]

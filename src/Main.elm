@@ -3,7 +3,7 @@ module Main exposing (getTitle, main, view)
 import Backend
 import Browser
 import Browser.Navigation as Nav
-import Common.Main
+import Common.Main exposing (setShowBackButton)
 import Common.Model
 import Constants exposing (..)
 import Html exposing (..)
@@ -140,8 +140,12 @@ update msg model =
 
                 navigation =
                     model.navigation
+
+                commonModel =
+                    model.common
+                        |> setShowBackButton route
             in
-            ( { model | navigation = { navigation | route = route } }
+            ( { model | navigation = { navigation | route = route }, common = commonModel }
             , cmd
             )
 
@@ -259,6 +263,7 @@ init { basePath, userId } url navigationKey =
 
         commonModel =
             Common.Main.init
+                |> setShowBackButton route
 
         notLoggedIn =
             userId == ""

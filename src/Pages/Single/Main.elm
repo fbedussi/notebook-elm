@@ -5,14 +5,13 @@ import Common.Model exposing (withCommonOp, withNoCommonOp)
 import Constants exposing (..)
 import Decoders exposing (noteDecoder)
 import Encoders exposing (noteEncoder)
-import Html exposing (Html, a, header, main_)
-import Html.Attributes exposing (attribute, class, href)
+import Html exposing (Html, main_)
+import Html.Attributes exposing (class)
 import Json.Decode
 import Model exposing (Id)
 import Pages.Single.EditNoteForm exposing (editNoteForm)
 import Pages.Single.Model exposing (Model, Msg(..))
 import Styleguide.ErrorAlert exposing (errorAlert)
-import Styleguide.Icons.Back exposing (backIcon)
 import Utils exposing (getCopyNotePayload)
 
 
@@ -81,10 +80,7 @@ update redirectToSinglePage msg model =
 
 view : Model -> List (Html Msg)
 view model =
-    [ header []
-        [ a [ href "./", attribute "data-testid" "back-btn", class "no-style" ] [ backIcon ]
-        ]
-    , main_ [ class "container" ] [ editNoteForm model.isFormDirty model.note ]
+    [ main_ [ class "container" ] [ editNoteForm model.isFormDirty model.note ]
     , errorAlert model.error
     ]
 

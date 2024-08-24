@@ -24,8 +24,7 @@ update msg model =
 
 
 view model =
-    [ header [] [ text "Notebook" ]
-    , main_ [ class "container" ]
+    [ main_ [ class "container" ]
         [ form
             [ onSubmit Login ]
             [ textBox { labelAttributes = [ attribute "data-testid" "username-input", onInput UpdateUsername ], inputAttributes = [ value model.username ] } "Username"

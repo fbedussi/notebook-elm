@@ -13,6 +13,7 @@ type Msg
 
 type alias Model =
     { noteToDelete : Maybe Note
+    , showBackButton : Bool
     }
 
 
