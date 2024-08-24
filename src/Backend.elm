@@ -1,4 +1,4 @@
-port module Backend exposing (addNewNote, delNote, getNote, getNotes, gotNote, gotNotes, saveNote)
+port module Backend exposing (addNewNote, delNote, getNote, getNotes, gotNote, gotNotes, loggedIn, login, saveNote)
 
 import Encoders exposing (newNoteDataEncoder)
 import Json.Decode exposing (Value)
@@ -29,3 +29,9 @@ port gotNote : (Value -> msg) -> Sub msg
 
 
 port delNote : Id -> Cmd msg
+
+
+port login : Value -> Cmd msg
+
+
+port loggedIn : (String -> msg) -> Sub msg

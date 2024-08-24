@@ -10,6 +10,8 @@ import Html exposing (..)
 import Model exposing (Note)
 import Pages.List.Main as ListPage
 import Pages.List.Model exposing (Msg(..))
+import Pages.Login.Main as LoginPage
+import Pages.Login.Model
 import Pages.Single.Main as SinglePage
 import Pages.Single.Model
 import Router exposing (Route(..), parseUrl, performUrlChange, sendUrlChangeRequest)
@@ -26,9 +28,11 @@ type alias Navigation =
 
 type alias Model =
     { navigation : Navigation
+    , loginPage : Pages.Login.Model.Model
     , listPage : Pages.List.Model.Model
     , singlePage : Pages.Single.Model.Model
     , common : Common.Model.Model
+    , userId : String
     }
 
 
@@ -41,6 +45,10 @@ view model =
 
         pageContent =
             case model.navigation.route of
+                LoginRoute ->
+                    LoginPage.view model.loginPage
+                        |> List.map (Html.map GotLoginMsg)
+
                 ListRoute ->
                     ListPage.view model.listPage
                         |> List.map (Html.map GotListMsg)
@@ -89,14 +97,19 @@ type Msg
     = ClickedLink Browser.UrlRequest
     | PerformUrlChange String
     | ChangedUrl Url
+    | GotLoginMsg Pages.Login.Model.Msg
     | GotListMsg Pages.List.Model.Msg
     | GotSingleMsg Pages.Single.Model.Msg
     | GotCommonMsg Common.Model.Msg
+    | LoggedIn String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        LoggedIn userId ->
+            ( { model | userId = userId }, sendUrlChangeRequest "" )
+
         ClickedLink (Browser.Internal url) ->
             ( model, Url.toString url |> sendUrlChangeRequest )
 
@@ -113,6 +126,9 @@ update msg model =
 
                 cmd =
                     case route of
+                        LoginRoute ->
+                            Cmd.none
+
                         SingleRoute id ->
                             Backend.getNote id
 
@@ -128,6 +144,13 @@ update msg model =
             ( { model | navigation = { navigation | route = route } }
             , cmd
             )
+
+        GotLoginMsg loginMsg ->
+            let
+                ( loginModel, loginCmd ) =
+                    LoginPage.update loginMsg model.loginPage
+            in
+            ( { model | loginPage = loginModel }, loginCmd |> Cmd.map GotLoginMsg )
 
         GotListMsg listMsg ->
             case model.navigation.route of
@@ -196,7 +219,7 @@ redirectToListPage model () =
 
 
 type alias Flags =
-    { basePath : String }
+    { basePath : String, userId : String }
 
 
 main : Program Flags Model Msg
@@ -212,7 +235,7 @@ main =
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init { basePath } url navigationKey =
+init { basePath, userId } url navigationKey =
     let
         route =
             parseUrl basePath url
@@ -225,6 +248,9 @@ init { basePath } url navigationKey =
                 _ ->
                     ""
 
+        loginPageModel =
+            LoginPage.init
+
         ( listPageModel, listPageCmd ) =
             ListPage.init ()
 
@@ -233,17 +259,35 @@ init { basePath } url navigationKey =
 
         commonModel =
             Common.Main.init
+
+        notLoggedIn =
+            userId == ""
     in
     ( { navigation =
             { key = navigationKey
-            , route = route
+            , route =
+                if notLoggedIn then
+                    LoginRoute
+
+                else
+                    route
             , basePath = basePath
             }
+      , loginPage = loginPageModel
       , listPage = listPageModel
       , singlePage = singlePageModel
       , common = commonModel
+      , userId = userId
       }
-    , Cmd.batch [ singlePageCmd |> Cmd.map GotSingleMsg, listPageCmd |> Cmd.map GotListMsg ]
+    , Cmd.batch
+        [ if notLoggedIn then
+            sendUrlChangeRequest "login"
+
+          else
+            Cmd.none
+        , singlePageCmd |> Cmd.map GotSingleMsg
+        , listPageCmd |> Cmd.map GotListMsg
+        ]
     )
 
 
@@ -255,4 +299,5 @@ subscriptions _ =
             |> Sub.map GotListMsg
         , SinglePage.subscriptions ()
             |> Sub.map GotSingleMsg
+        , Backend.loggedIn LoggedIn
         ]

@@ -3,7 +3,9 @@ import { handlePageChange } from './changePage.js'
 
 const basePath = new URL(document.baseURI).pathname;
 
-const elmApp = Elm.Main.init({flags: { basePath }});
+const USER_ID = 'userId'
+const userId = window.localStorage.getItem(USER_ID) || ''
+const elmApp = Elm.Main.init({flags: { basePath, userId }});
 
 handleDialog(elmApp)
 
@@ -45,4 +47,10 @@ elmApp.ports.delNote.subscribe(noteId => {
   notes = notes.filter(note => note.id !== noteId)
   window.localStorage.setItem('notes', JSON.stringify(notes))
   elmApp.ports.gotNotes.send(notes)
+})
+
+elmApp.ports.login.subscribe(loginData => {
+  const userId = loginData.username + loginData.password
+  window.localStorage.setItem(USER_ID, userId)
+  elmApp.ports.loggedIn.send(userId)
 })

@@ -1,6 +1,6 @@
 export const handlePageChange = elmApp => {
   elmApp.ports.sendUrlChangeRequest.subscribe(url => {
-	if (url.includes('note')) {
+	if (url.includes('note') || url.includes('login')) {
 		document.documentElement.className = 'page-two'
 	} else {
 		document.documentElement.className = 'page-one'

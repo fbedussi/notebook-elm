@@ -4,16 +4,15 @@ import Backend exposing (getNote, gotNote)
 import Common.Model exposing (withCommonOp, withNoCommonOp)
 import Constants exposing (..)
 import Decoders exposing (noteDecoder)
+import Encoders exposing (noteEncoder)
 import Html exposing (Html, a, header, main_)
 import Html.Attributes exposing (attribute, class, href)
 import Json.Decode
-import Json.Encode
-import Model exposing (Id, Note)
+import Model exposing (Id)
 import Pages.Single.EditNoteForm exposing (editNoteForm)
 import Pages.Single.Model exposing (Model, Msg(..))
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Back exposing (backIcon)
-import Time exposing (posixToMillis)
 import Utils exposing (getCopyNotePayload)
 
 
@@ -78,18 +77,6 @@ update redirectToSinglePage msg model =
         CopyNote note ->
             ( { model | isCopyingNote = True }, getCopyNotePayload note |> Backend.addNewNote )
                 |> withNoCommonOp
-
-
-noteEncoder : Note -> Json.Encode.Value
-noteEncoder note =
-    Json.Encode.object
-        [ ( "id", Json.Encode.string note.id )
-        , ( "title", Json.Encode.string note.title )
-        , ( "text", Json.Encode.string note.text )
-        , ( "createdAt", Json.Encode.int (posixToMillis note.createdAt) )
-        , ( "updatedAt", Json.Encode.int (posixToMillis note.updatedAt) )
-        , ( "version", Json.Encode.int note.version )
-        ]
 
 
 view : Model -> List (Html Msg)

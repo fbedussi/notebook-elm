@@ -12,7 +12,8 @@ port performUrlChange : (String -> msg) -> Sub msg
 
 
 type Route
-    = ListRoute
+    = LoginRoute
+    | ListRoute
     | SingleRoute Id
     | NotFoundRoute
 
@@ -23,6 +24,7 @@ parseUrl basePath url =
         parse =
             Url.Parser.oneOf
                 [ Url.Parser.map ListRoute Url.Parser.top
+                , Url.Parser.map LoginRoute (Url.Parser.s "login")
                 , Url.Parser.map SingleRoute (Url.Parser.s "note" </> Url.Parser.string)
                 ]
                 |> Url.Parser.parse

@@ -1,7 +1,7 @@
 module Styleguide.Icons.Delete exposing (..)
 
 import Html.Attributes exposing (attribute)
-import Svg exposing (Svg, path, svg)
+import Svg exposing (path, svg)
 import Svg.Attributes exposing (d, fill, viewBox)
 
 
