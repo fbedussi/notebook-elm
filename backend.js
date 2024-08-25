@@ -35,7 +35,10 @@ export const getUserId = () => {
 
 /**
  * @typedef {AddNotePayload & {id: string}} Note 
+ * @typedef {Note[]} Notes
  */
+
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyBenlzLRgjVQHnt4uQwqMGE1O7q3mcKhMo",
@@ -220,12 +223,3 @@ export const updateNote = async (note) => {
  * @returns 
  */
 export const deleteNote = (id) => deleteDoc(doc(db, NOTES_COLLECTION_NAME, id))
-
-export const deleteData = () => {
-  return new Promise((res, rej) => {
-    getNotes(notes => {
-      Promise.all(notes.map(note => deleteNote(note.id))).then(res).catch(rej)
-    }).catch(rej)
-  })
-  
-}
