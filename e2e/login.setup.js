@@ -9,8 +9,8 @@ setup('authenticate', async ({ page }) => {
   await page.waitForURL('**/login');
 
   // Login
-  await page.getByTestId('username-input').fill('test@test.com');
-  await page.getByTestId('password-input').fill('testtest');
+  await page.getByTestId('username-input').fill('mock');
+  await page.getByTestId('password-input').fill('mock');
   await page.getByTestId('login-btn').click();
   
   // User is redirected to the home

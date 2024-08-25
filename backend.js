@@ -1,5 +1,4 @@
 //@ts-check
-import {debug} from 'console'
 import { initializeApp } from 'firebase/app'
 import {
   browserLocalPersistence,
@@ -221,3 +220,12 @@ export const updateNote = async (note) => {
  * @returns 
  */
 export const deleteNote = (id) => deleteDoc(doc(db, NOTES_COLLECTION_NAME, id))
+
+export const deleteData = () => {
+  return new Promise((res, rej) => {
+    getNotes(notes => {
+      Promise.all(notes.map(note => deleteNote(note.id))).then(res).catch(rej)
+    }).catch(rej)
+  })
+  
+}
