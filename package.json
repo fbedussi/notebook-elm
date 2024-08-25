@@ -17,7 +17,8 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/node": "^22.2.0",
     "elm-live": "^4.0.2",
-    "elm-test": "^0.19.1-revision12"
+    "elm-test": "^0.19.1-revision12",
+    "rollup": "^4.21.0"
   },
   "dependencies": {
     "firebase": "^10.13.0"
