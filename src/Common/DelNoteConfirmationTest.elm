@@ -3,7 +3,7 @@ module Common.DelNoteConfirmationTest exposing (..)
 import Common.DelNoteConfirmation exposing (delNoteConfirmation)
 import Html exposing (div)
 import Html.Attributes
-import Mockers exposing (mockedNote)
+import Mockers exposing (mockedTextNote)
 import Test exposing (describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector
@@ -15,7 +15,7 @@ delNoteConfirmationTest =
             \_ ->
                 let
                     ( content, footerContent ) =
-                        delNoteConfirmation mockedNote
+                        delNoteConfirmation mockedTextNote
                 in
                 div [] (content ++ footerContent)
                     |> Query.fromHtml
@@ -26,7 +26,7 @@ delNoteConfirmationTest =
             \_ ->
                 let
                     ( content, footerContent ) =
-                        delNoteConfirmation mockedNote
+                        delNoteConfirmation mockedTextNote
                 in
                 div [] (content ++ footerContent)
                     |> Query.fromHtml

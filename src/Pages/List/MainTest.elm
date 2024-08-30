@@ -3,7 +3,8 @@ module Pages.List.MainTest exposing (..)
 import Expect
 import Html exposing (div)
 import Html.Attributes
-import Mockers exposing (mockedNote)
+import Mockers exposing (mockedTextNote)
+import Model exposing (NewNoteData(..), getNoteText)
 import Pages.List.Main exposing (init, view)
 import Pages.List.Model exposing (Msg(..))
 import ProgramTest exposing (..)
@@ -35,7 +36,7 @@ listPageTest =
             \_ ->
                 let
                     note =
-                        mockedNote
+                        mockedTextNote
                 in
                 div [] (view { model | notes = [ note ] })
                     |> Query.fromHtml
@@ -43,16 +44,16 @@ listPageTest =
                         [ Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "note" ]
                     |> Query.has
                         [ Test.Html.Selector.text note.title
-                        , Test.Html.Selector.text note.text
+                        , Test.Html.Selector.text (getNoteText note)
                         ]
         , test "the notes are sorted by modification date" <|
             \_ ->
                 let
                     note1 =
-                        { mockedNote | title = "note1" }
+                        { mockedTextNote | title = "note1" }
 
                     note2 =
-                        { mockedNote | id = "2", title = "note2", updatedAt = millisToPosix 2 }
+                        { mockedTextNote | id = "2", title = "note2", updatedAt = millisToPosix 2 }
                 in
                 div [] (view { model | notes = [ note1, note2 ] })
                     |> Query.fromHtml
@@ -67,10 +68,10 @@ listPageTest =
                         { title = "old title", text = "old text" }
 
                     ( updatedModel, _, _ ) =
-                        Pages.List.Main.update AddNote { model | newNoteData = dirtyNewNoteData }
+                        Pages.List.Main.update AddNote { model | newNoteData = NewTextNoteData dirtyNewNoteData }
 
                     newNoteData =
                         updatedModel.newNoteData
                 in
-                Expect.equal { title = "", text = "" } newNoteData
+                Expect.equal (NewTextNoteData { title = "", text = "" }) newNoteData
         ]

@@ -1,24 +1,37 @@
 module Utils exposing (..)
 
-import Model exposing (NewNoteData, Note)
+import Model exposing (NewNoteData(..), Note, NoteContent(..))
 import Time exposing (posixToMillis)
 
 
 getCopyNotePayload : Note -> NewNoteData
 getCopyNotePayload note =
-    { title = note.title ++ " (copy)"
-    , text = note.text
-    }
+    case note.content of
+        TextNoteContent data ->
+            NewTextNoteData
+                { title = getCopyTitle note.title
+                , text = data.text
+                }
+
+        TodoNoteContent data ->
+            NewTodoNoteData
+                { title = getCopyTitle note.title
+                , todos = data.todos
+                }
 
 
-newestFirst : { a | updatedAt : Time.Posix } -> { b | updatedAt : Time.Posix } -> Order
+getCopyTitle title =
+    title ++ " (copy)"
+
+
+newestFirst : Note -> Note -> Order
 newestFirst noteA noteB =
     let
         updatedAtA =
-            posixToMillis noteA.updatedAt
+            noteA.updatedAt |> posixToMillis
 
         updatedAtB =
-            posixToMillis noteB.updatedAt
+            noteB.updatedAt |> posixToMillis
     in
     case compare updatedAtA updatedAtB of
         LT ->

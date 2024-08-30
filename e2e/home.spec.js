@@ -26,6 +26,33 @@ test('can add a note', async ({ page }) => {
   await expect(page.getByText(text)).toBeVisible()
 });
 
+test('can add a todo note', async ({ page }) => {
+  await page.goto('/');
+
+  // Open the form
+  await page.getByTestId('add-note-btn').click()
+  
+  // Select the todo template
+  await page.getByTestId('choose-note-type').selectOption('todo')
+
+  // Add a note
+  const title = 'fake title'
+  const todo1text = 'fake todo 1'
+  const todo2text = 'fake todo 2'
+  await page.getByTestId('note-title-input').fill(title)
+  await page.getByTestId('note-todo-text-input').nth(1).fill(todo1text)
+  await page.getByTestId('note-todo-text-input').nth(2).fill(todo2text)
+  await page.getByTestId('save-note-btn').click()
+
+  // The form is closed
+  await expect(page.getByTestId('add-note-form')).not.toBeVisible()
+
+  // The note is saved
+  await expect(page.getByText(title)).toBeVisible()
+  await expect(page.getByText(todo1text)).toBeVisible()
+  await expect(page.getByText(todo2text)).toBeVisible()
+});
+
 test('can delete a note', async ({ page }) => {
   await page.goto('/');
 

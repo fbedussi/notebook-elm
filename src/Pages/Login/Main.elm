@@ -11,6 +11,7 @@ import Styleguide.Icons.Login exposing (loginIcon)
 import Styleguide.TextBox exposing (textBox)
 
 
+update : Pages.Login.Model.Msg -> Pages.Login.Model.Model -> ( Pages.Login.Model.Model, Cmd Msg )
 update msg model =
     case msg of
         UpdateUsername username ->

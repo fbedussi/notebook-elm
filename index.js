@@ -51,8 +51,31 @@ elmApp.ports.getNotes.subscribe(withMockedBackend(
 )
 
 /**
- * @typedef {{title: string, text: string}} NewNoteData
+ * @typedef {{type: "text", title: string, text: string}} NewTextNoteData
+ * @typedef {{type: "todo", title: string, todos: import('./backend.js').Todo[]}} NewTodoNoteData
+ * @typedef {NewTextNoteData | NewTodoNoteData} NewNoteData
  */
+
+/**
+ * 
+ * @param {NewNoteData} newNoteData 
+ * @returns 
+ */
+const createNewNote = (newNoteData) => {
+      const timestamp = Date.now()
+      const newNote = {
+        id: crypto.randomUUID(),
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        version: 1,
+        title: newNoteData.title,
+        type: newNoteData.type,
+        content: newNoteData.type === "text" ? {text: newNoteData.text} : {todos: newNoteData.todos}
+      }
+
+      return newNote
+}
+
 
 elmApp.ports.addNote.subscribe(withMockedBackend(
     /**
@@ -63,13 +86,7 @@ elmApp.ports.addNote.subscribe(withMockedBackend(
       const timestamp = Date.now()
       /**@type NewNoteData */
       const parsedData = JSON.parse(newNoteData)
-      const newNote = {
-        ...parsedData,
-        id: crypto.randomUUID(),
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        version: 1,
-      }
+      const newNote = createNewNote(parsedData)
       mockedNotes.push(newNote)
       window.localStorage.setItem('notes', JSON.stringify(mockedNotes))
       elmApp.ports.gotNotes.send(mockedNotes)
@@ -82,10 +99,7 @@ elmApp.ports.addNote.subscribe(withMockedBackend(
     async newNoteData => {
       /**@type NewNoteData */
       const parsedData = JSON.parse(newNoteData)
-      const newNote = {
-        ...parsedData,
-        version: 1,
-      }
+      const newNote = createNewNote(parsedData)
       addNote(newNote)
     }
   ))

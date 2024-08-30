@@ -3,7 +3,7 @@ module Common.MainTest exposing (..)
 import Common.Main exposing (init, setShowBackButton, view)
 import Html exposing (div)
 import Html.Attributes
-import Mockers exposing (mockedNote)
+import Mockers exposing (mockedTextNote)
 import Router exposing (Route(..))
 import Test exposing (describe, test)
 import Test.Html.Query as Query
@@ -27,7 +27,7 @@ viewTest =
                     model =
                         init
                 in
-                div [] (view { model | noteToDelete = Just mockedNote })
+                div [] (view { model | noteToDelete = Just mockedTextNote })
                     |> Query.fromHtml
                     |> Query.has [ id "del-note-dialog" ]
         ]

@@ -3,10 +3,11 @@ module Pages.List.Main exposing (init, subscriptions, update, view)
 import Backend
 import Common.Model exposing (withCommonOp, withNoCommonOp)
 import Decoders exposing (notesDecoder)
-import Html exposing (Html, button, header, main_, text)
+import Html exposing (Html, button, main_, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import Json.Decode
+import Model exposing (NewNoteData(..), updateNewNoteText, updateNewNoteTitle, updateNewTodoDone, updateNewTodoText, updateTodoText)
 import Pages.List.AddNoteForm exposing (addNoteForm)
 import Pages.List.Model exposing (Model, Msg(..))
 import Pages.List.NoteCard exposing (noteCard)
@@ -41,25 +42,11 @@ update msg model =
                 |> withCommonOp (Common.Model.OpenDelNoteForm note)
 
         UpdateNewNoteTitle newNoteTitle ->
-            let
-                prevNewNodeData =
-                    model.newNoteData
-
-                updatedNewNodeData =
-                    { prevNewNodeData | title = newNoteTitle }
-            in
-            ( { model | newNoteData = updatedNewNodeData }, Cmd.none )
+            ( { model | newNoteData = updateNewNoteTitle model.newNoteData newNoteTitle, newNoteFormPristine = False }, Cmd.none )
                 |> withNoCommonOp
 
         UpdateNewNoteText newNoteText ->
-            let
-                prevNewNodeData =
-                    model.newNoteData
-
-                updatedNewNodeData =
-                    { prevNewNodeData | text = newNoteText }
-            in
-            ( { model | newNoteData = updatedNewNodeData }, Cmd.none )
+            ( { model | newNoteData = updateNewNoteText model.newNoteData newNoteText, newNoteFormPristine = False }, Cmd.none )
                 |> withNoCommonOp
 
         AddNote ->
@@ -68,7 +55,7 @@ update msg model =
                     update CloseAddNoteForm model
 
                 cleanNewNoteData =
-                    { title = "", text = "" }
+                    NewTextNoteData { title = "", text = "" }
             in
             ( { updatedModel | newNoteData = cleanNewNoteData }, Cmd.batch [ closeFormCmd, model.newNoteData |> Backend.addNewNote ], commonMsg )
 
@@ -82,6 +69,18 @@ update msg model =
 
         CopyNote note ->
             ( model, getCopyNotePayload note |> Backend.addNewNote )
+                |> withNoCommonOp
+
+        SetNoteType newNoteData ->
+            ( { model | newNoteData = newNoteData }, Cmd.none )
+                |> withNoCommonOp
+
+        UpdateTodoDone todoId done ->
+            ( { model | newNoteData = updateNewTodoDone model.newNoteData todoId done }, Cmd.none )
+                |> withNoCommonOp
+
+        UpdateTodoText todoId text ->
+            ( { model | newNoteData = updateNewTodoText model.newNoteData todoId text }, Cmd.none )
                 |> withNoCommonOp
 
 
@@ -107,7 +106,7 @@ view model =
             CloseAddNoteForm
             []
             "Add note"
-            (addNoteForm model.newNoteData)
+            (addNoteForm model.newNoteData model.newNoteFormPristine)
 
       else
         text ""
@@ -122,9 +121,11 @@ init () =
     ( { notes = []
       , addNoteFormOpen = False
       , newNoteData =
-            { title = ""
-            , text = ""
-            }
+            NewTextNoteData
+                { title = ""
+                , text = ""
+                }
+      , newNoteFormPristine = True
       , noteToDelete = Nothing
       , error = Nothing
       }

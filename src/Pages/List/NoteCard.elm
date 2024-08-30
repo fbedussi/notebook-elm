@@ -1,9 +1,9 @@
 module Pages.List.NoteCard exposing (..)
 
-import Html exposing (Html, a, article, div, footer, header, main_, text)
-import Html.Attributes exposing (attribute, class, href, style)
+import Html exposing (Html, a, article, div, footer, header, input, li, main_, span, text, ul)
+import Html.Attributes exposing (attribute, checked, class, disabled, href, style, type_, value)
 import Html.Events exposing (onClick)
-import Model exposing (Note)
+import Model exposing (Note, NoteContent(..), Todo)
 import Pages.List.Model exposing (Msg(..))
 import Styleguide.Button exposing (button)
 import Styleguide.Icons.Copy exposing (copyIcon)
@@ -13,6 +13,15 @@ import Styleguide.Icons.Edit exposing (editIcon)
 
 noteCard : Note -> Html Msg
 noteCard note =
+    let
+        mainContent =
+            case note.content of
+                TextNoteContent data ->
+                    [ text data.text ]
+
+                TodoNoteContent data ->
+                    todosView data.todos
+    in
     article
         [ attribute "data-testid" "note", class "note-card" ]
         [ header
@@ -20,7 +29,7 @@ noteCard note =
             [ text note.title ]
         , main_
             []
-            [ text note.text ]
+            mainContent
         , footer
             []
             [ div
@@ -30,4 +39,25 @@ noteCard note =
                 ]
             , a [ href ("./note/" ++ note.id), class "no-style", attribute "data-testid" "edit-btn", attribute "role" "button" ] [ editIcon ]
             ]
+        ]
+
+
+todosView : List Todo -> List (Html Msg)
+todosView todos =
+    [ ul
+        []
+        (List.map todoView todos)
+    ]
+
+
+todoView : Todo -> Html Msg
+todoView todo =
+    li
+        []
+        [ input
+            [ type_ "checkbox", checked todo.done, disabled True ]
+            []
+        , span
+            []
+            [ text todo.text ]
         ]

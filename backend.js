@@ -34,7 +34,48 @@ export const getUserId = () => {
  */
 
 /**
- * @typedef {AddNotePayload & {id: string}} Note 
+ * @typedef {Object} AddTextNotePayload
+ * @property {"text"} type 
+ * @property {string} title
+ * @property {string} text
+ */
+
+/** 
+ * @typedef {Object} AddTodoNotePayload
+ * @property {"todo"} type 
+ * @property {string} title
+ * @property {Todo[]} todos
+ */
+
+/** 
+ * @typedef {Object} Todo
+ * @property {string} id 
+ * @property {string} text
+ * @property {Boolean} done
+ */
+
+/**
+ * @typedef {{text: string}} TextNoteContent 
+ * @typedef {{todos: Todo[]}} TodoNoteContent 
+ */
+
+/**
+ * @typedef {TextNoteContent | TodoNoteContent} NoteContent 
+ */
+
+/**
+ * @typedef {{
+ *  id: string
+ *  type: "text" | "todo"
+ *  createdAt : Number
+ *  updatedAt : Number
+ *  version : Number
+ *  title : string
+ *  content : NoteContent
+ * }} Note 
+ */
+  
+ /**
  * @typedef {Note[]} Notes
  */
 
@@ -99,8 +140,6 @@ export const logoutBe = async () => {
 const NOTES_COLLECTION_NAME = 'notes'
 
 const baseNote = {
-  text: '',
-  todos: [],
   version: 1,
   archived: false,
   createdAt: 0,
@@ -172,7 +211,7 @@ export const getNote = async ({id, version, sendNote, forceUpdate}) => {
 
 /**
  * 
- * @param {Omit<Note, 'createdAt' | 'id'>} note 
+ * @param {Omit<Note, 'createdAt' | 'id' | 'updatedAt'>} note 
  * @returns 
  */
 export const addNote = async (note) => {

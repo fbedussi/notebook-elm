@@ -1,15 +1,18 @@
 module Mockers exposing (..)
 
-import Model exposing (Note)
+import Model exposing (Note, NoteContent(..))
 import Time exposing (millisToPosix)
 
 
-mockedNote : Note
-mockedNote =
+mockedTextNote : Note
+mockedTextNote =
     { id = "1"
-    , title = "fake title"
-    , text = "fake text"
     , createdAt = millisToPosix 1
     , updatedAt = millisToPosix 1
     , version = 1
+    , title = "fake title"
+    , content =
+        TextNoteContent
+            { text = "fake text"
+            }
     }
