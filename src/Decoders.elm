@@ -5,6 +5,7 @@ import Json.Decode.Pipeline exposing (required)
 import Model exposing (Note, NoteContent(..), TextNoteContentData, Todo, TodoNoteContentData)
 import Pages.List.Model exposing (Msg(..))
 import Time exposing (Posix, millisToPosix)
+import Json.Decode as Decode
 
 
 notesDecoder : Decoder (List Note)
@@ -57,3 +58,18 @@ decodePosix : Decoder Posix
 decodePosix =
     int
         |> Json.Decode.map millisToPosix
+
+
+keyDecoder : (Char -> msg) -> Decoder msg
+keyDecoder msg =
+    Decode.map (toKey msg) (Decode.field "key" Decode.string)
+
+
+toKey : (Char -> msg) -> String -> msg
+toKey msg keyValue =
+    case String.uncons keyValue of
+        Just ( char, "" ) ->
+            msg char
+
+        _ ->
+            msg ' '

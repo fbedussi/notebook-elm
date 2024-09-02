@@ -27,3 +27,4 @@ type Msg
     | SetNoteType NewNoteData
     | UpdateTodoDone Id Bool
     | UpdateTodoText Id String
+    | CheckShortcuts Char

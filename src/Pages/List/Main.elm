@@ -15,6 +15,9 @@ import Styleguide.Dialog exposing (closeDialog, dialog, dialogClosed, openDialog
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Plus exposing (plusIcon)
 import Utils exposing (getCopyNotePayload, newestFirst)
+import Browser.Events exposing (onKeyPress)
+import Decoders exposing (keyDecoder)
+import Json.Decode as Decode
 
 
 addNoteDialogId : String
@@ -83,6 +86,9 @@ update msg model =
             ( { model | newNoteData = updateNewTodoText model.newNoteData todoId text }, Cmd.none )
                 |> withNoCommonOp
 
+        CheckShortcuts char ->
+            if char == '+' && model.addNoteFormOpen == False then update OpenAddNoteForm model  else (model, Cmd.none) |> withNoCommonOp
+            
 
 decodeNotes : Json.Decode.Value -> Msg
 decodeNotes value =
@@ -138,4 +144,5 @@ subscriptions () =
     Sub.batch
         [ Backend.gotNotes decodeNotes
         , dialogClosed DialogClosed
+        , onKeyPress (keyDecoder CheckShortcuts)
         ]

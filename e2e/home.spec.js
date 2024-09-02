@@ -98,3 +98,14 @@ test('can copy a note', async ({ page }) => {
   await expect(page.getByText(title + ' (copy)')).toBeVisible()
   await expect(page.getByText(text)).toHaveCount(2)
 });
+
+test('can open the add note form with a keyboard shortcut', async ({ page }) => {
+  await page.goto('/');
+
+  // The form is hidden by default
+  await expect(page.getByTestId('add-note-form')).not.toBeVisible()
+
+  // Open the form
+  await page.keyboard.press('+')
+  await expect(page.getByTestId('add-note-form')).toBeVisible()
+});
