@@ -11,6 +11,8 @@ import Styleguide.Icons.Save exposing (saveIcon)
 import Styleguide.RadioGroup exposing (radioGroup)
 import Styleguide.TextArea exposing (textArea)
 import Styleguide.TextBox exposing (textBox)
+import Styleguide.SingleTodo exposing (singleTodo)
+import Html.Attributes exposing (style)
 
 
 addNoteForm : NewNoteData -> Bool -> ( List (Html Msg), List (Html Msg) )
@@ -36,7 +38,7 @@ addNoteForm newNoteData isPristine =
             "add-note-form"
     in
     ( [ form
-            [ id formId, testId "add-note-form", onSubmit AddNote ]
+            [ id formId, testId "add-note-form", onSubmit AddNote, style "display" "flex", style "flex-direction" "column", style "gap" "var(--pico-spacing)" ]
             (radioGroup
                 { groupLabel = "Select note type:"
                 , groupName = "note-type"
@@ -69,23 +71,13 @@ buildNewNoteData noteType selected =
 
 textNoteForm : { title : String, text : String } -> List (Html Msg)
 textNoteForm newTextNoteData =
-    [ textBox { labelAttributes = [ testId "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value newTextNoteData.title ] } "Title"
+    [ textBox { labelAttributes = [ testId "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value newTextNoteData.title ] } "Title" identity
     , textArea { labelAttributes = [ testId "note-text-input", onInput UpdateNewNoteText ], inputAttributes = [ value newTextNoteData.text ] } "content"
     ]
 
 
 totdoNoteForm : { title : String, todos : List Todo } -> List (Html Msg)
 totdoNoteForm { title, todos } =
-    textBox { labelAttributes = [ testId "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value title ] } "Title"
-        :: List.map todoLine todos
+    textBox { labelAttributes = [ testId "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value title ] } "Title" identity
+        :: List.map (singleTodo UpdateTodoDone UpdateTodoText) todos
 
-
-todoLine : Todo -> Html Msg
-todoLine todo =
-    div
-        []
-        [ input
-            [ type_ "checkbox", checked todo.done, onCheck (UpdateTodoDone todo.id) ]
-            []
-        , input [ value todo.text, onInput (UpdateTodoText todo.id), testId "note-todo-text-input" ] []
-        ]

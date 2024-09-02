@@ -39,7 +39,7 @@ editNoteForm isDirty maybeNote =
                 []
                 [ form
                     [ id formId, attribute "data-testid" "edit-note-form", onSubmit SaveNote ]
-                    [ textBox { labelAttributes = [ attribute "data-testid" "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value note.title ] } "Title"
+                    [ textBox { labelAttributes = [ attribute "data-testid" "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value note.title ] } "Title" identity
                     , content
                     ]
                 , div

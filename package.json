@@ -10,12 +10,14 @@
     "e2e:ui": "npx playwright test --ui",
     "e2e:debug": "npx playwright test --debug",
     "buildjs": "rollup -c rollup.config.js",
-    "buildjs:watch": "rollup -c rollup.config.js --watch"
+    "buildjs:watch": "rollup -c rollup.config.js --watch",
+    "sg": "npx elm-book src/Styleguide/Preview.elm --port=8001 --start-page=src/Styleguide/index.html -- --output=build/styleguide.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/node": "^22.2.0",
+    "elm-book": "^1.0.1",
     "elm-live": "^4.0.2",
     "elm-test": "^0.19.1-revision12",
     "rollup": "^4.21.0"

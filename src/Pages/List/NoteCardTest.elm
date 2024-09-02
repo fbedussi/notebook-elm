@@ -1,12 +1,14 @@
 module Pages.List.NoteCardTest exposing (..)
 
-import Html.Attributes
 import Main exposing (..)
 import Mockers exposing (mockedTextNote)
 import Pages.List.NoteCard exposing (noteCard)
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
-import Test.Html.Selector exposing (disabled, tag)
+import TestUtils exposing (testId)
+import Mockers exposing (mockedTodoNote)
+import Expect
+import Test.Html.Selector exposing (tag)
 
 
 addNoteFormTest : Test
@@ -17,17 +19,29 @@ addNoteFormTest =
                 noteCard mockedTextNote
                     |> Query.fromHtml
                     |> Query.has
-                        [ Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "edit-btn" ]
+                        [ testId "edit-btn" ]
         , test "it has the delete button" <|
             \_ ->
                 noteCard mockedTextNote
                     |> Query.fromHtml
                     |> Query.has
-                        [ Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "delete-note-btn" ]
+                        [ testId "delete-note-btn" ]
         , test "it has the copy button" <|
             \_ ->
                 noteCard mockedTextNote
                     |> Query.fromHtml
                     |> Query.has
-                        [ Test.Html.Selector.attribute <| Html.Attributes.attribute "data-testid" <| "copy-note-btn" ]
+                        [ testId "copy-note-btn" ]
+        ]
+
+
+todoNoteCardTest : Test
+todoNoteCardTest = 
+    describe "todo note card"
+        [test "doesn't show the empty todo" <|
+            \_ ->
+                noteCard mockedTodoNote
+                    |> Query.fromHtml
+                    |> Query.findAll [ tag "li" ]
+                    |> Query.count (Expect.equal 2)
         ]

@@ -39,6 +39,7 @@ view model =
                     ]
                 }
                 "Username"
+                identity    
             , textBox
                 { labelAttributes =
                     [ attribute "data-testid" "password-input"
@@ -51,6 +52,7 @@ view model =
                     ]
                 }
                 "Password"
+                identity
             , button [ type_ "submit", attribute "data-testid" "login-btn" ] [ loginIcon ]
             ]
         ]

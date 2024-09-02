@@ -46,7 +46,9 @@ todosView : List Todo -> List (Html Msg)
 todosView todos =
     [ ul
         []
-        (List.map todoView todos)
+        (todos
+            |> List.filter (\todo -> todo.text /= "" && todo.id /= String.fromInt((List.length todos) + 1) )
+            |> List.map todoView)
     ]
 
 

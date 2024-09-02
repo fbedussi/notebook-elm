@@ -1,9 +1,9 @@
 export const handlePageChange = elmApp => {
   elmApp.ports.sendUrlChangeRequest.subscribe(url => {
 	if (url.includes('note') || url.includes('login')) {
-		document.documentElement.className = 'page-two'
+		document.documentElement.className = 'pico page-two'
 	} else {
-		document.documentElement.className = 'page-one'
+		document.documentElement.className = 'pico page-one'
 	}
 
 	const changePage = () => {

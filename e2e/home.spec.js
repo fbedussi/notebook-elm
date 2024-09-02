@@ -33,15 +33,18 @@ test('can add a todo note', async ({ page }) => {
   await page.getByTestId('add-note-btn').click()
   
   // Select the todo template
-  await page.getByTestId('choose-note-type').selectOption('todo')
+  await page.getByLabel('todo').check()
 
   // Add a note
   const title = 'fake title'
   const todo1text = 'fake todo 1'
   const todo2text = 'fake todo 2'
+
   await page.getByTestId('note-title-input').fill(title)
-  await page.getByTestId('note-todo-text-input').nth(1).fill(todo1text)
-  await page.getByTestId('note-todo-text-input').nth(2).fill(todo2text)
+  await page.getByTestId('note-todo-text-input').fill(' ');
+  await page.getByTestId('note-todo-text-input').nth(0).fill(todo1text);
+  await page.getByTestId('note-todo-text-input').nth(1).click();
+  await page.getByTestId('note-todo-text-input').nth(1).fill(todo2text); 
   await page.getByTestId('save-note-btn').click()
 
   // The form is closed

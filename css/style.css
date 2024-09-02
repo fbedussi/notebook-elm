@@ -80,9 +80,20 @@ a.no-style {
   text-decoration: none;
 }
 
-svg {
+button.no-style {
+  background-color: transparent;
+  border: none;
+  color: inherit;
+}
+
+.pico svg {
   width: 1.5em;
   height: 1.5em;
+}
+
+.pico dialog header {
+  display: flex;
+  justify-content: space-between;
 }
 
 /*************
@@ -101,7 +112,7 @@ svg {
   height: 3rem;
 }
 
-body>header {
+.pico body>header {
   background-color: var(--pico-primary-background);
   padding-left: 1rem;
   padding-right: 1rem;
@@ -111,6 +122,14 @@ body>header {
 }
 
 .note-card {
+  ul {
+    padding-left: 0;
+    
+    li {
+      list-style: none;
+    }
+  }
+
   footer {
     display: flex;
     justify-content: space-between;
@@ -119,4 +138,10 @@ body>header {
       color: white;
     }
   }
+}
+
+.single-todo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
