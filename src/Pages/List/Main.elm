@@ -1,8 +1,9 @@
 module Pages.List.Main exposing (init, subscriptions, update, view)
 
 import Backend
+import Browser.Events exposing (onKeyPress)
 import Common.Model exposing (withCommonOp, withNoCommonOp)
-import Decoders exposing (notesDecoder)
+import Decoders exposing (keyDecoder, notesDecoder)
 import Html exposing (Html, button, main_, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
@@ -15,9 +16,6 @@ import Styleguide.Dialog exposing (closeDialog, dialog, dialogClosed, openDialog
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Plus exposing (plusIcon)
 import Utils exposing (getCopyNotePayload, newestFirst)
-import Browser.Events exposing (onKeyPress)
-import Decoders exposing (keyDecoder)
-import Json.Decode as Decode
 
 
 addNoteDialogId : String
@@ -87,8 +85,12 @@ update msg model =
                 |> withNoCommonOp
 
         CheckShortcuts char ->
-            if char == '+' && model.addNoteFormOpen == False then update OpenAddNoteForm model  else (model, Cmd.none) |> withNoCommonOp
-            
+            if char == '+' && model.addNoteFormOpen == False then
+                update OpenAddNoteForm model
+
+            else
+                ( model, Cmd.none ) |> withNoCommonOp
+
 
 decodeNotes : Json.Decode.Value -> Msg
 decodeNotes value =

@@ -41,12 +41,12 @@ update redirectToSinglePage msg model =
                     ( model, Cmd.none )
                         |> withNoCommonOp
 
-        UpdateNewNoteTitle newNoteTitle ->
+        UpdateNoteTitle noteTitle ->
             case model.note of
                 Just prevNoteData ->
                     let
                         updatedNoteData =
-                            { prevNoteData | title = newNoteTitle }
+                            { prevNoteData | title = noteTitle }
                     in
                     ( { model | note = Just updatedNoteData, isFormDirty = True }, Cmd.none )
                         |> withNoCommonOp
@@ -55,10 +55,10 @@ update redirectToSinglePage msg model =
                     ( model, Cmd.none )
                         |> withNoCommonOp
 
-        UpdateNewNoteText newNoteText ->
+        UpdateNoteText noteText ->
             case model.note of
                 Just prevNoteData ->
-                    ( { model | note = Just (updateNoteText prevNoteData newNoteText), isFormDirty = True }, Cmd.none )
+                    ( { model | note = Just (updateNoteText prevNoteData noteText), isFormDirty = True }, Cmd.none )
                         |> withNoCommonOp
 
                 Nothing ->

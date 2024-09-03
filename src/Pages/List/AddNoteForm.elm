@@ -1,18 +1,19 @@
 module Pages.List.AddNoteForm exposing (..)
 
+import Components.TextNoteForm exposing (textNoteForm)
+import Components.TodoNoteForm exposing (totdoNoteForm)
 import Html exposing (Html, div, form, input)
-import Html.Attributes exposing (attribute, checked, disabled, id, type_, value)
+import Html.Attributes exposing (attribute, checked, disabled, id, style, type_, value)
 import Html.Events exposing (onCheck, onInput, onSubmit)
 import HtmlUtils exposing (testId)
-import Model exposing (NewNoteData(..), Todo)
+import Model exposing (Id, NewNoteData(..), Todo)
 import Pages.List.Model exposing (Msg(..))
 import Styleguide.Button exposing (button)
 import Styleguide.Icons.Save exposing (saveIcon)
 import Styleguide.RadioGroup exposing (radioGroup)
 import Styleguide.TextArea exposing (textArea)
 import Styleguide.TextBox exposing (textBox)
-import Styleguide.SingleTodo exposing (singleTodo)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (class)
 
 
 addNoteForm : NewNoteData -> Bool -> ( List (Html Msg), List (Html Msg) )
@@ -28,17 +29,28 @@ addNoteForm newNoteData isPristine =
 
         noteForm =
             case newNoteData of
-                NewTextNoteData newTextNoteData ->
-                    textNoteForm newTextNoteData
+                NewTextNoteData { title, text } ->
+                    textNoteForm
+                        { title = title
+                        , text = text
+                        , updateTitleMsg = UpdateNewNoteTitle
+                        , updateTextMsg = UpdateNewNoteText
+                        }
 
-                NewTodoNoteData newTodoNoteData ->
-                    totdoNoteForm newTodoNoteData
+                NewTodoNoteData { title, todos } ->
+                    totdoNoteForm
+                        { title = title
+                        , todos = todos
+                        , updateTitleMsg = UpdateNewNoteTitle
+                        , updateTodoDoneMsg = UpdateTodoDone
+                        , updateTodoTextMsg = UpdateTodoText
+                        }
 
         formId =
             "add-note-form"
     in
     ( [ form
-            [ id formId, testId "add-note-form", onSubmit AddNote, style "display" "flex", style "flex-direction" "column", style "gap" "var(--pico-spacing)" ]
+            [ id formId, testId "add-note-form", onSubmit AddNote, class "note-form"]
             (radioGroup
                 { groupLabel = "Select note type:"
                 , groupName = "note-type"
@@ -67,17 +79,3 @@ buildNewNoteData noteType selected =
 
     else
         NewTextNoteData { title = "", text = "" }
-
-
-textNoteForm : { title : String, text : String } -> List (Html Msg)
-textNoteForm newTextNoteData =
-    [ textBox { labelAttributes = [ testId "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value newTextNoteData.title ] } "Title" identity
-    , textArea { labelAttributes = [ testId "note-text-input", onInput UpdateNewNoteText ], inputAttributes = [ value newTextNoteData.text ] } "content"
-    ]
-
-
-totdoNoteForm : { title : String, todos : List Todo } -> List (Html Msg)
-totdoNoteForm { title, todos } =
-    textBox { labelAttributes = [ testId "note-title-input", onInput UpdateNewNoteTitle ], inputAttributes = [ value title ] } "Title" identity
-        :: List.map (singleTodo UpdateTodoDone UpdateTodoText) todos
-

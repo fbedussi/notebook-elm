@@ -124,7 +124,7 @@ button.no-style {
 .note-card {
   ul {
     padding-left: 0;
-    
+
     li {
       list-style: none;
     }
@@ -138,6 +138,12 @@ button.no-style {
       color: white;
     }
   }
+}
+
+.note-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pico-spacing);
 }
 
 .single-todo {

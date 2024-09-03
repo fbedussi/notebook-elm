@@ -1,7 +1,6 @@
 module Pages.Single.Model exposing (..)
 
-import Model exposing (Note)
-import Model exposing (Id)
+import Model exposing (Id, Note)
 
 
 type alias Model =
@@ -9,7 +8,7 @@ type alias Model =
     , note : Maybe Note
     , error : Maybe String
     , isFormDirty : Bool
-    , isCopyingNote: Bool
+    , isCopyingNote : Bool
     }
 
 
@@ -17,8 +16,8 @@ type Msg
     = GotNote Note
     | SaveNote
     | GotError String
-    | UpdateNewNoteTitle String
-    | UpdateNewNoteText String
+    | UpdateNoteTitle String
+    | UpdateNoteText String
     | UpdateTodoDone Id Bool
     | UpdateTodoText Id String
     | DeleteNote Note

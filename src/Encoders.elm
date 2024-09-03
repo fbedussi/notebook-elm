@@ -74,7 +74,7 @@ todoEncoder todo =
     Json.Encode.object
         [ ( "id", Json.Encode.string todo.id )
         , ( "text", Json.Encode.string todo.text )
-        , ( "dobe", Json.Encode.bool todo.done )
+        , ( "done", Json.Encode.bool todo.done )
         ]
 
 
