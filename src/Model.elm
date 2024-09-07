@@ -83,16 +83,7 @@ updateTodoText note todoId text =
                 | content =
                     TodoNoteContent
                         { data
-                            | todos =
-                                List.map
-                                    (\todo ->
-                                        if todo.id == todoId then
-                                            { todo | text = text }
-
-                                        else
-                                            todo
-                                    )
-                                    data.todos
+                            | todos = updateTodosWitText { todoId = todoId, todos = data.todos, text = text }
                         }
             }
 
@@ -186,15 +177,39 @@ updateNewTodoText newTodoData todoId text =
             in
             NewTodoNoteData
                 { data
-                    | todos =
-                        List.map
-                            (\todo ->
-                                if todo.id == todoId then
-                                    { todo | text = text }
-
-                                else
-                                    todo
-                            )
-                            data.todos
-                            ++ newTodoToAppend
+                    | todos = updateTodosWitText { todoId = todoId, todos = data.todos, text = text }
                 }
+
+
+updateTodosWitText { todoId, text, todos } =
+    let
+        updatedTodos =
+            List.map
+                (\todo ->
+                    if todo.id == todoId then
+                        { todo | text = text }
+
+                    else
+                        todo
+                )
+                todos
+
+        lastTodo =
+            List.reverse updatedTodos |> List.head
+
+        newTodo =
+            [ { id = String.fromInt (List.length updatedTodos + 1), text = "", done = False } ]
+
+        newTodoToAppend =
+            case lastTodo of
+                Nothing ->
+                    newTodo
+
+                Just todo ->
+                    if todo.text == "" then
+                        []
+
+                    else
+                        newTodo
+    in
+    updatedTodos ++ newTodoToAppend

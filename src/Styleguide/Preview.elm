@@ -65,8 +65,8 @@ inputs =
     in
     chapter "Inputs"
         |> renderComponentListWithWrapper
-            [ ( "Text box", textBox { labelAttributes = [], inputAttributes = [], endElement = Nothing } "My text input" )
-            , ( "Text box with reset button", textBox { labelAttributes = [], inputAttributes = [], endElement = Just deleteBtn } "My text input" )
+            [ ( "Text box", textBox { labelAttributes = [], inputAttributes = [] } "My text input" identity )
+            , ( "Text box with reset button", textBox { labelAttributes = [], inputAttributes = [] } "My text input" (\defaults -> { defaults | endElement = deleteBtn }) )
             , ( "Radio group", radioGroup { groupLabel = "Group label", groupName = "test", options = [ { value = "one", label = "one" }, { value = "two", label = "two" } ] } onCheckMsg "one" )
             ]
 
@@ -91,10 +91,13 @@ tokens =
 
         updateTextMsg =
             \id text -> logAction ("Task " ++ id ++ " " ++ text)
+
+        updateTitleMsg =
+            \title -> logAction ("Title " ++ title)
     in
     chapter "Tokens"
         |> renderComponentListWithWrapper
-            [ ( "totdoNoteForm", totdoNoteForm updateDoneMsg updateTextMsg todo ) ]
+            [ ( "totdoNoteForm", div [] (totdoNoteForm { updateTodoDoneMsg = updateDoneMsg, updateTodoTextMsg = updateTextMsg, todos = [ todo ], title = "", updateTitleMsg = updateTitleMsg }) ) ]
 
 
 main : Book ()
