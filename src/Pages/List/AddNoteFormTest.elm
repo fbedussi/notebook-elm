@@ -9,14 +9,18 @@ import Pages.List.AddNoteForm exposing (addNoteForm)
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector exposing (disabled, tag)
+import Mockers exposing (mockDndData)
+import Pages.List.Model exposing (Msg(..))
 
-
+mockedDndData =
+    mockDndData SwapTodos
+    
 addNoteFormTest : Test
 addNoteFormTest =
     describe "addNoteForm"
         [ test "it has the right fields" <|
             \_ ->
-                addNoteForm (NewTextNoteData { title = "", text = "" }) True
+                addNoteForm mockedDndData (NewTextNoteData { title = "", text = "" }) True
                     |> (\( a, b ) ->
                             a ++ b
                        )
@@ -29,7 +33,7 @@ addNoteFormTest =
                         ]
         , test "the submit button is disabled if the form is empty" <|
             \_ ->
-                addNoteForm (NewTextNoteData { title = "", text = "" }) True
+                addNoteForm mockedDndData (NewTextNoteData { title = "", text = "" }) True
                     |> (\( a, b ) ->
                             a ++ b
                        )

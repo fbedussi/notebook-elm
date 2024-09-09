@@ -3,6 +3,7 @@ module Pages.List.NoteCard exposing (..)
 import Html exposing (Html, a, article, div, footer, header, input, li, main_, span, text, ul)
 import Html.Attributes exposing (attribute, checked, class, disabled, href, style, type_, value)
 import Html.Events exposing (onClick)
+import HtmlUtils exposing (testId)
 import Model exposing (Note, NoteContent(..), Todo)
 import Pages.List.Model exposing (Msg(..))
 import Styleguide.Button exposing (button)
@@ -47,8 +48,9 @@ todosView todos =
     [ ul
         []
         (todos
-            |> List.filter (\todo -> todo.text /= "" && todo.id /= String.fromInt((List.length todos) + 1) )
-            |> List.map todoView)
+            |> List.filter (\todo -> todo.text /= "" && todo.id /= String.fromInt (List.length todos + 1))
+            |> List.map todoView
+        )
     ]
 
 
@@ -60,6 +62,6 @@ todoView todo =
             [ type_ "checkbox", checked todo.done, disabled True ]
             []
         , span
-            []
+            [ testId "todo-text" ]
             [ text todo.text ]
         ]

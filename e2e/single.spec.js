@@ -1,17 +1,35 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 
-test('Add & edit a note, back button', async ({ page }) => {
+const createTextNote = async ({ page, title, text }) => {
   await page.goto('/');
 
   await page.getByTestId('add-note-btn').click()
 
-  const title = 'fake title'
-  const text = 'fake text'
+
 
   await page.getByTestId('note-title-input').fill(title)
   await page.getByTestId('note-text-input').fill(text)
   await page.getByTestId('save-note-btn').click()
+}
+
+const createTodoNote = async ({ page, title, todo1text }) => {
+  await page.goto('/');
+
+  // Open the form
+  await page.getByTestId('add-note-btn').click()
+
+  // Add a todo note
+  await page.getByLabel('todo').check()
+  await page.getByTestId('note-title-input').fill(title)
+  await page.getByTestId('note-todo-text-input').fill(todo1text);
+  await page.getByTestId('save-note-btn').click()
+}
+
+test('Add & edit a note, back button', async ({ page }) => {
+  const title = 'fake title'
+  const text = 'fake text'
+  await createTextNote({ page, title, text })
 
   // Go to single note page
   await page.getByTestId('edit-btn').click()
@@ -50,17 +68,9 @@ test('Add & edit a note, back button', async ({ page }) => {
 
 
 test('can delete a note', async ({ page }) => {
-  // add a note
-  await page.goto('/');
-
-  await page.getByTestId('add-note-btn').click()
-
   const title = 'fake title'
   const text = 'fake text'
-
-  await page.getByTestId('note-title-input').fill(title)
-  await page.getByTestId('note-text-input').fill(text)
-  await page.getByTestId('save-note-btn').click()
+  await createTextNote({ page, title, text })
 
   // Go to single note page
   await page.getByTestId('edit-btn').click()
@@ -83,17 +93,9 @@ test('can delete a note', async ({ page }) => {
 });
 
 test('can copy a note', async ({ page }) => {
-  // add a note
-  await page.goto('/');
-
-  await page.getByTestId('add-note-btn').click()
-
   const title = 'fake title'
   const text = 'fake text'
-
-  await page.getByTestId('note-title-input').fill(title)
-  await page.getByTestId('note-text-input').fill(text)
-  await page.getByTestId('save-note-btn').click()
+  await createTextNote({ page, title, text })
 
   // Go to single note page
   await page.getByTestId('edit-btn').click()
@@ -107,18 +109,9 @@ test('can copy a note', async ({ page }) => {
 });
 
 test('can edit a todo note', async ({ page }) => {
-  await page.goto('/');
-
-  // Open the form
-  await page.getByTestId('add-note-btn').click()
-
-  // Add a todo note
-  await page.getByLabel('todo').check()
   const title = 'fake title'
   const todo1text = 'fake todo 1'
-  await page.getByTestId('note-title-input').fill(title)
-  await page.getByTestId('note-todo-text-input').fill(todo1text);
-  await page.getByTestId('save-note-btn').click()
+  await createTodoNote({ page, title, todo1text })
 
   // Go to single note page
   await page.getByTestId('edit-btn').click()
@@ -158,18 +151,9 @@ test('can edit a todo note', async ({ page }) => {
 });
 
 test('a new todo is added when the last one is filled in', async ({ page }) => {
-  await page.goto('/');
-
-  // Open the form
-  await page.getByTestId('add-note-btn').click()
-
-  // Add a todo note
-  await page.getByLabel('todo').check()
   const title = 'fake title'
   const todo1text = 'fake todo 1'
-  await page.getByTestId('note-title-input').fill(title)
-  await page.getByTestId('note-todo-text-input').fill(todo1text);
-  await page.getByTestId('save-note-btn').click()
+  await createTodoNote({ page, title, todo1text })
 
   // Go to single note page
   await page.getByTestId('edit-btn').click()
@@ -185,4 +169,44 @@ test('a new todo is added when the last one is filled in', async ({ page }) => {
 
   // a new todo row is added 
   await expect(await page.getByTestId('note-todo-text-input').count()).toBe(3)
+});
+
+
+
+test.skip('todos can be sorted with drag and drop', async ({ page }) => {
+  await page.goto('/');
+
+  // Open the form
+  await page.getByTestId('add-note-btn').click()
+
+  // Select the todo template
+  await page.getByLabel('todo').check()
+
+  // Add a note
+  const title = 'fake title'
+  const todo1text = 'fake todo 1'
+  const todo2text = 'fake todo 2'
+
+  await page.getByTestId('note-title-input').fill(title)
+  await page.getByTestId('note-todo-text-input').fill(' ');
+  await page.getByTestId('note-todo-text-input').nth(0).fill(todo1text);
+  await page.getByTestId('note-todo-text-input').nth(1).click();
+  await page.getByTestId('note-todo-text-input').nth(1).fill(todo2text);
+  await page.getByTestId('save-note-btn').click()
+
+
+  // Go to single note page
+  await page.getByTestId('edit-btn').click()
+  await page.waitForURL('**/note/*');
+  await expect(page.getByTestId('note-title-input')).toBeVisible()
+
+  // Reorder todos
+  await page.getByTestId('single-todo').nth(0).dragTo(page.getByTestId('single-todo').nth(1));
+  await page.getByTestId('save-note-btn').click()
+
+
+  // The note is saved and the todos are swapped
+  await expect(page
+    .getByTestId('single-todo'))
+    .toHaveText([todo2text, todo1text]);
 });

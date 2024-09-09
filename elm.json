@@ -7,6 +7,7 @@
     "dependencies": {
         "direct": {
             "NoRedInk/elm-json-decode-pipeline": "1.0.1",
+            "annaghi/dnd-list": "6.0.1",
             "avh4/elm-program-test": "4.0.0",
             "dtwrks/elm-book": "1.4.3",
             "elm/browser": "1.0.2",

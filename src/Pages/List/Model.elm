@@ -1,5 +1,6 @@
 module Pages.List.Model exposing (..)
 
+import DnDList
 import Model exposing (Id, NewNoteData, Note, Notes)
 
 
@@ -10,6 +11,7 @@ type alias Model =
     , newNoteFormPristine : Bool
     , noteToDelete : Maybe Note
     , error : Maybe String
+    , dnd : DnDList.Model
     }
 
 
@@ -28,3 +30,4 @@ type Msg
     | UpdateTodoDone Id Bool
     | UpdateTodoText Id String
     | CheckShortcuts Char
+    | SwapTodos DnDList.Msg

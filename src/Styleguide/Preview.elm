@@ -6,6 +6,7 @@ import ElmBook.Actions exposing (logAction)
 import ElmBook.Chapter exposing (..)
 import Html exposing (div, text)
 import Html.Attributes exposing (class, style)
+import Mockers exposing (mockDndData)
 import Styleguide.Button exposing (button)
 import Styleguide.Icons.Back exposing (backIcon)
 import Styleguide.Icons.Copy exposing (copyIcon)
@@ -94,10 +95,13 @@ tokens =
 
         updateTitleMsg =
             \title -> logAction ("Title " ++ title)
+
+        swapTodosMsg =
+            \msg -> logAction ("Swap todos " ++ Debug.toString msg)
     in
     chapter "Tokens"
         |> renderComponentListWithWrapper
-            [ ( "totdoNoteForm", div [] (totdoNoteForm { updateTodoDoneMsg = updateDoneMsg, updateTodoTextMsg = updateTextMsg, todos = [ todo ], title = "", updateTitleMsg = updateTitleMsg }) ) ]
+            [ ( "totdoNoteForm", div [] (totdoNoteForm (mockDndData swapTodosMsg) { updateTodoDoneMsg = updateDoneMsg, updateTodoTextMsg = updateTextMsg, todos = [ todo ], title = "", updateTitleMsg = updateTitleMsg }) ) ]
 
 
 main : Book ()

@@ -10,7 +10,7 @@ test('can add a note', async ({ page }) => {
   // Open the form
   await page.getByTestId('add-note-btn').click()
   await expect(page.getByTestId('add-note-form')).toBeVisible()
-  
+
   // Add a note
   const title = 'fake title'
   const text = 'fake text'
@@ -31,7 +31,7 @@ test('can add a todo note', async ({ page }) => {
 
   // Open the form
   await page.getByTestId('add-note-btn').click()
-  
+
   // Select the todo template
   await page.getByLabel('todo').check()
 
@@ -44,7 +44,7 @@ test('can add a todo note', async ({ page }) => {
   await page.getByTestId('note-todo-text-input').fill(' ');
   await page.getByTestId('note-todo-text-input').nth(0).fill(todo1text);
   await page.getByTestId('note-todo-text-input').nth(1).click();
-  await page.getByTestId('note-todo-text-input').nth(1).fill(todo2text); 
+  await page.getByTestId('note-todo-text-input').nth(1).fill(todo2text);
   await page.getByTestId('save-note-btn').click()
 
   // The form is closed
@@ -60,7 +60,7 @@ test('can delete a note', async ({ page }) => {
   await page.goto('/');
 
   await page.getByTestId('add-note-btn').click()
-  
+
   const title = 'fake title'
   const text = 'fake text'
 
@@ -93,7 +93,7 @@ test('can copy a note', async ({ page }) => {
 
   // Copy the note
   await page.getByTestId('copy-note-btn').click()
-  
+
   // The note is saved
   await expect(page.getByText(title + ' (copy)')).toBeVisible()
   await expect(page.getByText(text)).toHaveCount(2)
@@ -108,4 +108,35 @@ test('can open the add note form with a keyboard shortcut', async ({ page }) => 
   // Open the form
   await page.keyboard.press('+')
   await expect(page.getByTestId('add-note-form')).toBeVisible()
+});
+
+test.skip('todos can be sorted with drag and drop', async ({ page }) => {
+  await page.goto('/');
+
+  // Open the form
+  await page.getByTestId('add-note-btn').click()
+
+  // Select the todo template
+  await page.getByLabel('todo').check()
+
+  // Add a note
+  const title = 'fake title'
+  const todo1text = 'fake todo 1'
+  const todo2text = 'fake todo 2'
+
+  await page.getByTestId('note-title-input').fill(title)
+  await page.getByTestId('note-todo-text-input').fill(' ');
+  await page.getByTestId('note-todo-text-input').nth(0).fill(todo1text);
+  await page.getByTestId('note-todo-text-input').nth(1).click();
+  await page.getByTestId('note-todo-text-input').nth(1).fill(todo2text);
+
+
+  await page.getByTestId('drag-icon').nth(0).dragTo(page.getByTestId('drag-icon').nth(1));
+  await page.getByTestId('save-note-btn').click()
+
+  // The note is saved and the todos are swapped
+  await expect(page.getByText(title)).toBeVisible()
+  await expect(page
+    .getByRole('listitem'))
+    .toHaveText([todo2text, todo1text]);
 });

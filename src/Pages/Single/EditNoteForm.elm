@@ -2,11 +2,12 @@ module Pages.Single.EditNoteForm exposing (..)
 
 import Components.TextNoteForm exposing (textNoteForm)
 import Components.TodoNoteForm exposing (totdoNoteForm)
+import DnDList
 import Html exposing (Html, div, form, input)
 import Html.Attributes exposing (attribute, checked, class, disabled, id, style, type_, value)
 import Html.Events exposing (onCheck, onClick, onInput, onSubmit)
 import HtmlUtils exposing (testId)
-import Model exposing (Note, NoteContent(..), Todo)
+import Model exposing (DndData, Note, NoteContent(..), Todo)
 import Pages.Single.Model exposing (Msg(..))
 import Styleguide.Button exposing (button)
 import Styleguide.Icons.Copy exposing (copyIcon)
@@ -16,8 +17,8 @@ import Styleguide.TextArea exposing (textArea)
 import Styleguide.TextBox exposing (textBox)
 
 
-editNoteForm : Bool -> Maybe Note -> Html.Html Msg
-editNoteForm isDirty maybeNote =
+editNoteForm : DndData Msg -> Bool -> Maybe Note -> Html.Html Msg
+editNoteForm dndData isDirty maybeNote =
     case maybeNote of
         Nothing ->
             form [] []
@@ -42,6 +43,7 @@ editNoteForm isDirty maybeNote =
 
                         TodoNoteContent { todos } ->
                             totdoNoteForm
+                                dndData
                                 { title = note.title
                                 , todos = todos
                                 , updateTitleMsg = UpdateNoteTitle

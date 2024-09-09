@@ -1,5 +1,6 @@
 module Pages.Single.Model exposing (..)
 
+import DnDList
 import Model exposing (Id, Note)
 
 
@@ -9,6 +10,7 @@ type alias Model =
     , error : Maybe String
     , isFormDirty : Bool
     , isCopyingNote : Bool
+    , dnd : DnDList.Model
     }
 
 
@@ -22,3 +24,4 @@ type Msg
     | UpdateTodoText Id String
     | DeleteNote Note
     | CopyNote Note
+    | SwapTodos DnDList.Msg

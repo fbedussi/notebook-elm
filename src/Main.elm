@@ -314,12 +314,12 @@ init { basePath, userId } url navigationKey =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
         [ performUrlChange PerformUrlChange
-        , ListPage.subscriptions ()
+        , ListPage.subscriptions model.listPage
             |> Sub.map GotListMsg
-        , SinglePage.subscriptions ()
+        , SinglePage.subscriptions model.singlePage
             |> Sub.map GotSingleMsg
         , Backend.loggedIn LoggedIn
         ]

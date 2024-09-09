@@ -1,5 +1,6 @@
 module Model exposing (..)
 
+import DnDList
 import Time
 
 
@@ -213,3 +214,7 @@ updateTodosWitText { todoId, text, todos } =
                         newTodo
     in
     updatedTodos ++ newTodoToAppend
+
+
+type alias DndData msg =
+    { dndSystem : DnDList.System Todo msg, dndModel : DnDList.Model }

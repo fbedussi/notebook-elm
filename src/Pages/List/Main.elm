@@ -4,11 +4,12 @@ import Backend
 import Browser.Events exposing (onKeyPress)
 import Common.Model exposing (withCommonOp, withNoCommonOp)
 import Decoders exposing (keyDecoder, notesDecoder)
+import DnDList
 import Html exposing (Html, button, main_, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
 import Json.Decode
-import Model exposing (NewNoteData(..), updateNewNoteText, updateNewNoteTitle, updateNewTodoDone, updateNewTodoText, updateTodoText)
+import Model exposing (DndData, NewNoteData(..), Todo, updateNewNoteText, updateNewNoteTitle, updateNewTodoDone, updateNewTodoText, updateTodoText)
 import Pages.List.AddNoteForm exposing (addNoteForm)
 import Pages.List.Model exposing (Model, Msg(..))
 import Pages.List.NoteCard exposing (noteCard)
@@ -16,6 +17,20 @@ import Styleguide.Dialog exposing (closeDialog, dialog, dialogClosed, openDialog
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Plus exposing (plusIcon)
 import Utils exposing (getCopyNotePayload, newestFirst)
+
+
+dndConfig : DnDList.Config Todo
+dndConfig =
+    { beforeUpdate = \_ _ list -> list
+    , movement = DnDList.Vertical
+    , listen = DnDList.OnDrag
+    , operation = DnDList.Swap
+    }
+
+
+dndSystem : DnDList.System Todo Msg
+dndSystem =
+    DnDList.create dndConfig SwapTodos
 
 
 addNoteDialogId : String
@@ -91,6 +106,22 @@ update msg model =
             else
                 ( model, Cmd.none ) |> withNoCommonOp
 
+        SwapTodos dndMsg ->
+            case model.newNoteData of
+                NewTextNoteData _ ->
+                    ( model, Cmd.none )
+                        |> withNoCommonOp
+
+                NewTodoNoteData { title, todos } ->
+                    let
+                        ( dnd, updatedTodos ) =
+                            dndSystem.update dndMsg model.dnd todos
+                    in
+                    ( { model | dnd = dnd, newNoteData = NewTodoNoteData { title = title, todos = updatedTodos } }
+                    , dndSystem.commands dnd
+                    )
+                        |> withNoCommonOp
+
 
 decodeNotes : Json.Decode.Value -> Msg
 decodeNotes value =
@@ -114,7 +145,7 @@ view model =
             CloseAddNoteForm
             []
             "Add note"
-            (addNoteForm model.newNoteData model.newNoteFormPristine)
+            (addNoteForm (DndData dndSystem model.dnd) model.newNoteData model.newNoteFormPristine)
 
       else
         text ""
@@ -136,15 +167,17 @@ init () =
       , newNoteFormPristine = True
       , noteToDelete = Nothing
       , error = Nothing
+      , dnd = dndSystem.model
       }
     , Backend.getNotes ()
     )
 
 
-subscriptions : () -> Sub Msg
-subscriptions () =
+subscriptions : Model -> Sub Msg
+subscriptions model =
     Sub.batch
         [ Backend.gotNotes decodeNotes
         , dialogClosed DialogClosed
         , onKeyPress (keyDecoder CheckShortcuts)
+        , dndSystem.subscriptions model.dnd
         ]

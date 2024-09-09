@@ -1,9 +1,11 @@
 module Components.TodoNoteFormTest exposing (..)
 
 import Components.TodoNoteForm exposing (totdoNoteForm)
+import DnDList
 import Expect
 import Html exposing (div)
 import Html.Attributes
+import Mockers exposing (mockDndData)
 import Model exposing (Id, Todo)
 import Test exposing (describe, test)
 import Test.Html.Query as Query
@@ -14,6 +16,7 @@ type Msg
     = UpdateTitle String
     | UpdateTodoDone Id Bool
     | UpdateTodoText Id String
+    | SwapTodos DnDList.Msg
 
 
 defaultProps =
@@ -36,6 +39,7 @@ totdoNoteFormTest =
                 div
                     []
                     (totdoNoteForm
+                        (mockDndData SwapTodos)
                         { defaultProps | title = title }
                     )
                     |> Query.fromHtml
@@ -53,6 +57,7 @@ totdoNoteFormTest =
                 div
                     []
                     (totdoNoteForm
+                        (mockDndData SwapTodos)
                         { defaultProps | title = title, todos = todos }
                     )
                     |> Query.fromHtml
@@ -79,6 +84,7 @@ totdoNoteFormTest =
                 div
                     []
                     (totdoNoteForm
+                        (mockDndData SwapTodos)
                         { defaultProps | title = title, todos = todos }
                     )
                     |> Query.fromHtml
