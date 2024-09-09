@@ -140,3 +140,21 @@ test.skip('todos can be sorted with drag and drop', async ({ page }) => {
     .getByRole('listitem'))
     .toHaveText([todo2text, todo1text]);
 });
+
+test('can add a note using markdown', async ({ page }) => {
+  await page.goto('/');
+
+  // Open the form
+  await page.getByTestId('add-note-btn').click()
+  await expect(page.getByTestId('add-note-form')).toBeVisible()
+
+  // Add a note
+  const title = 'fake title'
+  const text = '# h1'
+  await page.getByTestId('note-title-input').fill(title)
+  await page.getByTestId('note-text-input').fill(text)
+  await page.getByTestId('save-note-btn').click()
+
+  // The note text is rendered as HTML
+  await expect(page.getByRole('heading', { name: 'h1' })).toBeVisible()
+});

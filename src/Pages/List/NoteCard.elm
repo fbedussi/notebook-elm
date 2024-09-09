@@ -10,6 +10,8 @@ import Styleguide.Button exposing (button)
 import Styleguide.Icons.Copy exposing (copyIcon)
 import Styleguide.Icons.Delete exposing (deleteIcon)
 import Styleguide.Icons.Edit exposing (editIcon)
+import Markdown
+import Html.Attributes exposing (classList)
 
 
 noteCard : Note -> Html Msg
@@ -18,13 +20,13 @@ noteCard note =
         mainContent =
             case note.content of
                 TextNoteContent data ->
-                    [ text data.text ]
+                    [ Markdown.toHtml [] data.text ]
 
                 TodoNoteContent data ->
                     todosView data.todos
     in
     article
-        [ attribute "data-testid" "note", class "note-card" ]
+        [ attribute "data-testid" "note", class "note-card", classList [("todo", isTodoNote note)] ]
         [ header
             []
             [ text note.title ]
@@ -42,6 +44,13 @@ noteCard note =
             ]
         ]
 
+isTodoNote note = 
+    case note.content of
+        TextNoteContent data ->
+            False
+
+        TodoNoteContent data ->
+            True
 
 todosView : List Todo -> List (Html Msg)
 todosView todos =

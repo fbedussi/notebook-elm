@@ -6,10 +6,11 @@ import Html.Events exposing (onInput)
 import HtmlUtils exposing (testId)
 import Styleguide.TextArea exposing (textArea)
 import Styleguide.TextBox exposing (textBox)
+import Html.Attributes exposing (rows)
 
 
 textNoteForm : { title : String, text : String, updateTitleMsg : String -> msg, updateTextMsg : String -> msg } -> List (Html msg)
 textNoteForm { title, text, updateTextMsg, updateTitleMsg } =
     [ textBox { labelAttributes = [ testId "note-title-input", onInput updateTitleMsg ], inputAttributes = [ value title ] } "Title" identity
-    , textArea { labelAttributes = [ testId "note-text-input", onInput updateTextMsg ], inputAttributes = [ value text ] } "content"
+    , textArea { labelAttributes = [ testId "note-text-input", onInput updateTextMsg ], inputAttributes = [ value text, rows 10 ] } "content"
     ]
