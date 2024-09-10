@@ -20,18 +20,18 @@ totdoNoteForm :
         , updateTodoTextMsg : Id -> String -> msg
         }
     -> List (Html msg)
-totdoNoteForm dndData props =
+totdoNoteForm dndData ({ title, todos } as props) =
     textBox
         { labelAttributes =
             [ testId "note-title-input"
             , onInput props.updateTitleMsg
             ]
-        , inputAttributes = [ value props.title ]
+        , inputAttributes = [ value title ]
         }
         "Title"
         identity
-        :: List.indexedMap (singleTodoDndWrapper dndData props) props.todos
-        ++ [ ghostView (dndData.dndSystem.ghostStyles dndData.dndModel) (getDraggedTodo dndData props.todos) ]
+        :: List.indexedMap (singleTodoDndWrapper dndData props) todos
+        ++ [ ghostView (dndData.dndSystem.ghostStyles dndData.dndModel) (getDraggedTodo dndData todos) ]
 
 
 getDraggedTodo { dndSystem, dndModel } todos =
