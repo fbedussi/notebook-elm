@@ -18,7 +18,6 @@ type alias Model =
 type Msg
     = OpenAddNoteForm
     | CloseAddNoteForm
-    | DialogClosed ()
     | DeleteNote Note
     | CopyNote Note
     | UpdateNewNoteTitle String

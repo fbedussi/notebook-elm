@@ -8,12 +8,13 @@ import DnDList
 import Html exposing (Html, button, main_, text)
 import Html.Attributes exposing (attribute, class)
 import Html.Events exposing (onClick)
+import HtmlUtils exposing (testId)
 import Json.Decode
 import Model exposing (DndData, NewNoteData(..), Todo, updateNewNoteText, updateNewNoteTitle, updateNewTodoDone, updateNewTodoText, updateTodoText)
 import Pages.List.AddNoteForm exposing (addNoteForm)
 import Pages.List.Model exposing (Model, Msg(..))
 import Pages.List.NoteCard exposing (noteCard)
-import Styleguide.Dialog exposing (closeDialog, dialog, dialogClosed, openDialog)
+import Styleguide.Dialog exposing (dialog)
 import Styleguide.ErrorAlert exposing (errorAlert)
 import Styleguide.Icons.Plus exposing (plusIcon)
 import Utils exposing (getCopyNotePayload, newestFirst)
@@ -42,14 +43,10 @@ update : Msg -> Model -> ( Model, Cmd Msg, Common.Model.Msg )
 update msg model =
     case msg of
         OpenAddNoteForm ->
-            ( { model | addNoteFormOpen = True }, openDialog addNoteDialogId )
+            ( { model | addNoteFormOpen = True }, Cmd.none )
                 |> withNoCommonOp
 
         CloseAddNoteForm ->
-            ( model, closeDialog addNoteDialogId )
-                |> withNoCommonOp
-
-        DialogClosed () ->
             ( { model | addNoteFormOpen = False }, Cmd.none )
                 |> withNoCommonOp
 
@@ -141,17 +138,17 @@ view : Model -> List (Html Msg)
 view model =
     [ if model.addNoteFormOpen then
         dialog
-            addNoteDialogId
             CloseAddNoteForm
             []
             "Add note"
             (addNoteForm (DndData dndSystem model.dnd) model.newNoteData model.newNoteFormPristine)
+            model.addNoteFormOpen
 
       else
         text ""
     , main_ [ class "container" ] (model.notes |> List.sortWith newestFirst |> List.map noteCard)
     , errorAlert model.error
-    , button [ attribute "data-testid" "add-note-btn", class "add-note-btn", class "fab", onClick OpenAddNoteForm ] [ plusIcon ]
+    , button [ testId "add-note-btn", class "add-note-btn", class "fab", onClick OpenAddNoteForm ] [ plusIcon ]
     ]
 
 
@@ -177,7 +174,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ Backend.gotNotes decodeNotes
-        , dialogClosed DialogClosed
         , onKeyPress (keyDecoder CheckShortcuts)
         , dndSystem.subscriptions model.dnd
         ]

@@ -6,7 +6,7 @@ import Common.Model exposing (Model, Msg(..))
 import Html exposing (Html, a, header, text)
 import Html.Attributes exposing (attribute, class, href)
 import Router exposing (Route(..))
-import Styleguide.Dialog exposing (closeDialog, dialog, openDialog)
+import Styleguide.Dialog exposing (dialog)
 import Styleguide.Icons.Back exposing (backIcon)
 
 
@@ -45,7 +45,7 @@ update : (() -> Cmd Msg) -> Msg -> Model -> ( Model, Cmd Msg )
 update redirectToListPage msg model =
     case msg of
         OpenDelNoteForm noteToDelete ->
-            ( { model | noteToDelete = Just noteToDelete }, openDialog delNoteDialogId )
+            ( { model | noteToDelete = Just noteToDelete }, Cmd.none )
 
         DelNote noteId ->
             let
@@ -55,9 +55,6 @@ update redirectToListPage msg model =
             ( updatedModel, Cmd.batch [ Backend.delNote noteId, redirectToListPage (), closeCmd ] )
 
         CloseDelNoteForm ->
-            ( model, closeDialog delNoteDialogId )
-
-        DialogClosed () ->
             ( { model | noteToDelete = Nothing }, Cmd.none )
 
         NoOp ->
@@ -77,14 +74,19 @@ view model =
     [ case model.noteToDelete of
         Just note ->
             dialog
-                delNoteDialogId
                 CloseDelNoteForm
                 [ attribute "data-testid" "delete-note-confirmation" ]
                 "Delete note"
                 (delNoteConfirmation note)
+                True
 
         Nothing ->
-            text ""
+            dialog
+                CloseDelNoteForm
+                [ attribute "data-testid" "delete-note-confirmation" ]
+                "Delete note"
+                (delNoteConfirmation { title = "", id = "" })
+                False
     , header []
         [ backButton
         , text "Notebook"

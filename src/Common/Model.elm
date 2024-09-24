@@ -7,7 +7,6 @@ type Msg
     = OpenDelNoteForm Note
     | DelNote Id
     | CloseDelNoteForm
-    | DialogClosed ()
     | NoOp
 
 

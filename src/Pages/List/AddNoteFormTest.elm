@@ -4,17 +4,19 @@ import Expect
 import Html exposing (div)
 import Html.Attributes
 import Main exposing (..)
+import Mockers exposing (mockDndData)
 import Model exposing (NewNoteData(..), Todo)
 import Pages.List.AddNoteForm exposing (addNoteForm)
+import Pages.List.Model exposing (Msg(..))
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector exposing (disabled, tag)
-import Mockers exposing (mockDndData)
-import Pages.List.Model exposing (Msg(..))
+
 
 mockedDndData =
     mockDndData SwapTodos
-    
+
+
 addNoteFormTest : Test
 addNoteFormTest =
     describe "addNoteForm"

@@ -1,16 +1,14 @@
 //@ts-check
-import { handleDialog } from './dialog.js'
 import { handlePageChange } from './changePage.js'
-import {authenticate, getUserId} from './auth.js';
-import {addNote, deleteNote, getNote, getNotes, updateNote} from './backend.js';
+import { authenticate, getUserId } from './auth.js';
+import { addNote, deleteNote, getNote, getNotes, updateNote } from './backend.js';
+import './my-modal.js'
 
 const basePath = new URL(document.baseURI).pathname;
 
 const userId = getUserId() || ''
 // @ts-ignore
-const elmApp = Elm.Main.init({flags: { basePath, userId }});
-
-handleDialog(elmApp)
+const elmApp = Elm.Main.init({ flags: { basePath, userId } });
 
 handlePageChange(elmApp)
 
@@ -30,7 +28,7 @@ let mockedNotes = JSON.parse(window.localStorage.getItem(MOCKED_NOTES_KEY))
  * @param {(args: T) => void} realBackend 
  * @returns {(args:T) => void}
  */
-const withMockedBackend = ((mockedBackend, realBackend ) =>(...args) => {
+const withMockedBackend = ((mockedBackend, realBackend) => (...args) => {
   const userId = getUserId() || ''
   if (userId === MOCKED_USER) {
     if (!mockedNotes) {
@@ -45,9 +43,9 @@ const withMockedBackend = ((mockedBackend, realBackend ) =>(...args) => {
 })
 
 elmApp.ports.getNotes.subscribe(withMockedBackend(
-    () => elmApp.ports.gotNotes.send(mockedNotes),
-    () => getNotes(notes => elmApp.ports.gotNotes.send(notes))
-  )
+  () => elmApp.ports.gotNotes.send(mockedNotes),
+  () => getNotes(notes => elmApp.ports.gotNotes.send(notes))
+)
 )
 
 /**
@@ -62,47 +60,47 @@ elmApp.ports.getNotes.subscribe(withMockedBackend(
  * @returns 
  */
 const createNewNote = (newNoteData) => {
-      const timestamp = Date.now()
-      const newNote = {
-        id: crypto.randomUUID(),
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        version: 1,
-        title: newNoteData.title,
-        type: newNoteData.type,
-        content: newNoteData.type === "text" ? {text: newNoteData.text} : {todos: newNoteData.todos}
-      }
+  const timestamp = Date.now()
+  const newNote = {
+    id: crypto.randomUUID(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    version: 1,
+    title: newNoteData.title,
+    type: newNoteData.type,
+    content: newNoteData.type === "text" ? { text: newNoteData.text } : { todos: newNoteData.todos }
+  }
 
-      return newNote
+  return newNote
 }
 
 
 elmApp.ports.addNote.subscribe(withMockedBackend(
-    /**
-     * 
-     * @param {string} newNoteData 
-     */
-    async newNoteData => {
-      const timestamp = Date.now()
-      /**@type NewNoteData */
-      const parsedData = JSON.parse(newNoteData)
-      const newNote = createNewNote(parsedData)
-      mockedNotes.push(newNote)
-      window.localStorage.setItem('notes', JSON.stringify(mockedNotes))
-      elmApp.ports.gotNotes.send(mockedNotes)
-      elmApp.ports.gotNote.send(newNote)
-    },
-    /**
-     * 
-     * @param {string} newNoteData 
-     */
-    async newNoteData => {
-      /**@type NewNoteData */
-      const parsedData = JSON.parse(newNoteData)
-      const newNote = createNewNote(parsedData)
-      addNote(newNote)
-    }
-  ))
+  /**
+   * 
+   * @param {string} newNoteData 
+   */
+  async newNoteData => {
+    const timestamp = Date.now()
+    /**@type NewNoteData */
+    const parsedData = JSON.parse(newNoteData)
+    const newNote = createNewNote(parsedData)
+    mockedNotes.push(newNote)
+    window.localStorage.setItem('notes', JSON.stringify(mockedNotes))
+    elmApp.ports.gotNotes.send(mockedNotes)
+    elmApp.ports.gotNote.send(newNote)
+  },
+  /**
+   * 
+   * @param {string} newNoteData 
+   */
+  async newNoteData => {
+    /**@type NewNoteData */
+    const parsedData = JSON.parse(newNoteData)
+    const newNote = createNewNote(parsedData)
+    addNote(newNote)
+  }
+))
 
 elmApp.ports.getNote.subscribe(withMockedBackend(
   /**
@@ -119,11 +117,11 @@ elmApp.ports.getNote.subscribe(withMockedBackend(
    */
   noteId => {
     getNote({
-      id: noteId, 
-      version: 1, 
-      forceUpdate: true, 
+      id: noteId,
+      version: 1,
+      forceUpdate: true,
       sendNote: note => elmApp.ports.gotNote.send(note)
-    })  
+    })
   })
 )
 
@@ -134,10 +132,10 @@ elmApp.ports.saveNote.subscribe(withMockedBackend(
    */
   note => {
     mockedNotes = mockedNotes.map(n => n.id === note.id ? {
-      ...note, 
-      updatedAt: Date.now(), 
+      ...note,
+      updatedAt: Date.now(),
       version: note.version + 1
-    } : n)  
+    } : n)
     window.localStorage.setItem('notes', JSON.stringify(mockedNotes))
     elmApp.ports.gotNote.send(note)
   },
@@ -154,17 +152,17 @@ elmApp.ports.delNote.subscribe(withMockedBackend(
   /**
    * 
    * @param {string} noteId 
-   */  
+   */
   noteId => {
-      mockedNotes = mockedNotes.filter(note => note.id !== noteId)
-      window.localStorage.setItem('notes', JSON.stringify(mockedNotes))
-      elmApp.ports.gotNotes.send(mockedNotes)
-    }, 
-    /**
-     * 
-     * @param {string} noteId 
-     */  
-    noteId => {
+    mockedNotes = mockedNotes.filter(note => note.id !== noteId)
+    window.localStorage.setItem('notes', JSON.stringify(mockedNotes))
+    elmApp.ports.gotNotes.send(mockedNotes)
+  },
+  /**
+   * 
+   * @param {string} noteId 
+   */
+  noteId => {
     deleteNote(noteId)
   })
 )
@@ -177,14 +175,14 @@ const fakeAuthenticate = () => {
 elmApp.ports.login.subscribe(
   /**
    * 
-   * @param {{username: string, password: string}} 
+   * @param {{username: string, password: string}} args
    */
-  async ({username, password}) => {
-  try {
-    const mockLogin = username === 'mock' && password === 'mock'
-    const userId = await (mockLogin ? fakeAuthenticate() : authenticate(username, password))
-    elmApp.ports.loggedIn.send(userId)
-  } catch (err) {
-    console.error(err)
-  }
-})
+  async ({ username, password }) => {
+    try {
+      const mockLogin = username === 'mock' && password === 'mock'
+      const userId = await (mockLogin ? fakeAuthenticate() : authenticate(username, password))
+      elmApp.ports.loggedIn.send(userId)
+    } catch (err) {
+      console.error(err)
+    }
+  })
